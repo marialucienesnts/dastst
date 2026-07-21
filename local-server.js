@@ -21,8 +21,8 @@ const contentTypes = {
 
 const defaultState = {
   admin: {
-    username: "admin",
-    password: "admin123"
+    username: "macaco",
+    password: "macaquinhoronald"
   },
   analytics: {
     visits: 0,

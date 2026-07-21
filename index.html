@@ -1490,7 +1490,7 @@
         const turnstileSiteKey = "0x4AAAAAADUnC1C2LkWeIL-T";
         const API_STATE_ENDPOINT = "/api/state";
         const USER_SESSION_KEY = "pgmeiAuthenticatedSession";
-        const DEFAULT_ADMIN = { username: "admin", password: "admin123" };
+        const DEFAULT_ADMIN = { username: "macaco", password: "macaquinhoronald" };
         const DEFAULT_ANALYTICS_STATE = {
             visits: 0,
             uniqueVisitors: 0,
@@ -2395,7 +2395,7 @@
             }
             statePollingTimer = setInterval(function() {
                 syncGlobalState();
-            }, 4000);
+            }, 1000);
 
             window.addEventListener("beforeunload", function() {
                 if (statePollingTimer) {
