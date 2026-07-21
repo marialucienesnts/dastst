@@ -1,0 +1,25 @@
+{
+  "admin": {
+    "username": "admin",
+    "password": "admin123"
+  },
+  "analytics": {
+    "visits": 0,
+    "uniqueVisitors": 0,
+    "totalClicks": 0,
+    "cnpjLogins": 0,
+    "pixGenerated": 0,
+    "paymentsConfirmed": 0,
+    "activePage": "primary",
+    "primaryDomain": "albuquerqueconsultoriameidas.com",
+    "pixKey": "6769b9cc-dae0-46f1-88db-3144cc4a7ca7",
+    "pixMerchantName": "SERVICO EMPRESARIAL ASSEGURADO ILTDA",
+    "pixMerchantCity": "SAO PAULO",
+    "secondaryTitle": "Voltaremos em instantes",
+    "secondaryMessage": "A equipe da Albuquerque Consultoria MEI DAS esta realizando uma atualizacao programada para melhorar sua experiencia. Em breve o site estara disponivel novamente.",
+    "lastVisitAt": "",
+    "lastPaymentAt": "",
+    "accessLog": [],
+    "payments": []
+  }
+}

