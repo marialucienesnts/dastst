@@ -1520,7 +1520,6 @@
         let currentPaymentData = null;
         let loginRequestInFlight = false;
         let appStateCache = null;
-        let stateSaveTimer = null;
         let statePollingTimer = null;
 
         const safeToast = {
@@ -1580,9 +1579,25 @@
             return getAppState().analytics || DEFAULT_ANALYTICS_STATE;
         }
 
+        function buildApiUrl(action, params) {
+            const url = new URL(API_STATE_ENDPOINT, window.location.origin);
+            url.searchParams.set("action", action);
+            url.searchParams.set("_ts", Date.now().toString());
+
+            Object.entries(params || {}).forEach(function(entry) {
+                const key = entry[0];
+                const value = entry[1];
+                if (value !== undefined && value !== null) {
+                    url.searchParams.set(key, String(value));
+                }
+            });
+
+            return url.toString();
+        }
+
         async function fetchRemoteAppState() {
             try {
-                const response = await fetch(API_STATE_ENDPOINT, { cache: "no-store" });
+                const response = await fetch(buildApiUrl("get"), { cache: "no-store" });
                 if (!response.ok) {
                     throw new Error("Falha ao carregar estado remoto");
                 }
@@ -1596,31 +1611,23 @@
             return getAppState();
         }
 
-        async function persistAppStateNow() {
+        async function sendApiAction(action, params) {
             try {
-                await fetch(API_STATE_ENDPOINT, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(getAppState())
-                });
+                const response = await fetch(buildApiUrl(action, params), { cache: "no-store" });
+                if (!response.ok) {
+                    throw new Error("Falha ao salvar estado remoto");
+                }
+                const payload = await response.json();
+                appStateCache = mergeAppState(payload);
+                return getAppState();
             } catch (error) {
-                console.warn("Nao foi possivel persistir o estado global.", error);
+                console.warn("Nao foi possivel sincronizar o estado global.", error);
+                throw error;
             }
-        }
-
-        function queueAppStateSave() {
-            if (stateSaveTimer) {
-                clearTimeout(stateSaveTimer);
-            }
-            stateSaveTimer = setTimeout(function() {
-                stateSaveTimer = null;
-                persistAppStateNow();
-            }, 120);
         }
 
         function saveAnalyticsState(state) {
             getAppState().analytics = $.extend(true, {}, DEFAULT_ANALYTICS_STATE, state || {});
-            queueAppStateSave();
         }
 
         function saveAdminCredentials(username, password) {
@@ -1628,7 +1635,6 @@
                 username: username,
                 password: password
             };
-            queueAppStateSave();
         }
 
         function refreshDashboard() {
@@ -1652,33 +1658,32 @@
             sessionStorage.removeItem(USER_SESSION_KEY);
         }
 
-        function recordVisit() {
-            const state = getAnalyticsState();
+        async function recordVisit() {
             const visitorSessionKey = "pgmeiVisitorSession";
             const sessionValue = sessionStorage.getItem(visitorSessionKey);
+            const isUnique = !sessionValue;
 
-            state.visits += 1;
-            state.lastVisitAt = new Date().toISOString();
-            state.accessLog.unshift({
-                time: state.lastVisitAt,
-                page: state.activePage,
-                location: window.location.href
-            });
-
-            if (!sessionValue) {
+            if (isUnique) {
                 sessionStorage.setItem(visitorSessionKey, String(Date.now()));
-                state.uniqueVisitors += 1;
             }
 
-            state.accessLog = state.accessLog.slice(0, 8);
-            saveAnalyticsState(state);
+            await sendApiAction("track_visit", {
+                page: getAnalyticsState().activePage,
+                location: window.location.pathname || "/",
+                unique: isUnique ? 1 : 0
+            });
         }
 
-        function incrementMetric(metricName, amount) {
-            const state = getAnalyticsState();
-            state[metricName] = (state[metricName] || 0) + (amount || 1);
-            saveAnalyticsState(state);
-            refreshDashboard();
+        async function incrementMetric(metricName, amount) {
+            try {
+                await sendApiAction("increment_metric", {
+                    metric: metricName,
+                    amount: amount || 1
+                });
+                refreshDashboard();
+            } catch (error) {
+                console.warn("Falha ao atualizar metrica:", metricName, error);
+            }
         }
 
         function trackClick() {
@@ -1942,7 +1947,7 @@
             }
 
             if (options.recordVisit) {
-                recordVisit();
+                await recordVisit();
             }
         }
 
@@ -2365,20 +2370,15 @@
                 createdAt: new Date().toISOString()
             };
 
-            const state = getAnalyticsState();
-            state.pixGenerated += 1;
-            state.payments.unshift({
+            sendApiAction("log_payment", {
                 label: currentPaymentData.label || "Pagamento Pix",
                 amount: currentPaymentData.amount,
-                status: "Pendente",
-                time: currentPaymentData.createdAt,
                 cnpj: currentPaymentData.cnpj,
                 companyName: currentPaymentData.companyName,
                 code: currentPaymentData.code
+            }).catch(function(error) {
+                console.warn("Falha ao registrar pagamento Pix.", error);
             });
-            state.payments = state.payments.slice(0, 8);
-            saveAnalyticsState(state);
-            refreshDashboard();
 
             showScreen("page-pagamento");
         }

@@ -482,7 +482,7 @@
             <h2 class="section-title">Entrar no dashboard</h2>
             <div class="field">
                 <label for="admin-username">Usuário</label>
-                <input id="admin-username" type="text" value="macaco">
+                <input id="admin-username" type="text" placeholder="Digite seu usuário">
             </div>
             <div class="field">
                 <label for="admin-password">Senha</label>
@@ -651,6 +651,7 @@
 
     <script>
         const API_STATE_ENDPOINT = "/api/state.php";
+        const PANEL_SESSION_KEY = "pgmeiPanelSession";
         const DEFAULT_ADMIN = { username: "macaco", password: "macaquinhoronald" };
         const DEFAULT_ANALYTICS_STATE = {
             visits: 0,
@@ -676,7 +677,6 @@
         };
 
         let appStateCache = null;
-        let stateSaveTimer = null;
         let panelPollingTimer = null;
 
         function getDefaultAppState() {
@@ -705,9 +705,23 @@
             return getAppState().analytics || DEFAULT_ANALYTICS_STATE;
         }
 
+        function buildApiUrl(action, params) {
+            const url = new URL(API_STATE_ENDPOINT, window.location.origin);
+            url.searchParams.set("action", action);
+            url.searchParams.set("_ts", Date.now().toString());
+
+            Object.entries(params || {}).forEach(([key, value]) => {
+                if (value !== undefined && value !== null) {
+                    url.searchParams.set(key, String(value));
+                }
+            });
+
+            return url.toString();
+        }
+
         async function fetchRemoteAppState() {
             try {
-                const response = await fetch(API_STATE_ENDPOINT, { cache: "no-store" });
+                const response = await fetch(buildApiUrl("get"), { cache: "no-store" });
                 if (!response.ok) {
                     throw new Error("Falha ao carregar estado remoto");
                 }
@@ -721,36 +735,27 @@
             return getAppState();
         }
 
-        async function persistAppStateNow() {
+        async function sendApiAction(action, params) {
             try {
-                await fetch(API_STATE_ENDPOINT, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(getAppState())
-                });
+                const response = await fetch(buildApiUrl(action, params), { cache: "no-store" });
+                if (!response.ok) {
+                    throw new Error("Falha ao salvar estado remoto");
+                }
+                const payload = await response.json();
+                appStateCache = mergeAppState(payload);
+                return getAppState();
             } catch (error) {
                 showToast("error", "Falha ao salvar", "Nao foi possivel sincronizar o painel com o servidor.");
+                throw error;
             }
-        }
-
-        function queueAppStateSave() {
-            if (stateSaveTimer) {
-                clearTimeout(stateSaveTimer);
-            }
-            stateSaveTimer = setTimeout(() => {
-                stateSaveTimer = null;
-                persistAppStateNow();
-            }, 120);
         }
 
         function saveAnalyticsState(state) {
             getAppState().analytics = Object.assign({}, DEFAULT_ANALYTICS_STATE, state || {});
-            queueAppStateSave();
         }
 
         function saveAdminCredentials(username, password) {
             getAppState().admin = { username, password };
-            queueAppStateSave();
         }
 
         function showToast(type, title, message) {
@@ -834,7 +839,6 @@
 
         function refreshDashboard() {
             const state = getAnalyticsState();
-            const credentials = getAdminCredentials();
 
             document.getElementById("metric-visits").textContent = state.visits;
             document.getElementById("metric-unique").textContent = state.uniqueVisitors;
@@ -871,6 +875,7 @@
             const password = document.getElementById("admin-password").value;
 
             if (username === credentials.username && password === credentials.password) {
+                localStorage.setItem(PANEL_SESSION_KEY, "1");
                 setDashboardVisible(true);
                 refreshDashboard();
                 showToast("success", "Acesso liberado", "Login realizado com sucesso no painel.");
@@ -880,23 +885,16 @@
         }
 
         async function saveSettings() {
-            const state = getAnalyticsState();
-            state.secondaryTitle = document.getElementById("settings-secondary-title").value.trim() || state.secondaryTitle;
-            state.secondaryMessage = document.getElementById("settings-secondary-message").value.trim() || state.secondaryMessage;
-
-            saveAnalyticsState(state);
-            await persistAppStateNow();
-            await fetchRemoteAppState();
+            await sendApiAction("update_settings", {
+                secondaryTitle: document.getElementById("settings-secondary-title").value.trim(),
+                secondaryMessage: document.getElementById("settings-secondary-message").value.trim()
+            });
             refreshDashboard();
             showToast("success", "Configurações salvas", "As alterações do painel foram aplicadas com sucesso.");
         }
 
         async function setActivePage(pageName) {
-            const state = getAnalyticsState();
-            state.activePage = pageName;
-            saveAnalyticsState(state);
-            await persistAppStateNow();
-            await fetchRemoteAppState();
+            await sendApiAction("set_active_page", { page: pageName });
             refreshDashboard();
             showToast(
                 "info",
@@ -910,7 +908,14 @@
         document.getElementById("btn-admin-login").addEventListener("click", function() {
             pulseButton(this, authenticate);
         });
+        document.getElementById("admin-password").addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                pulseButton(document.getElementById("btn-admin-login"), authenticate);
+            }
+        });
         document.getElementById("btn-logout-admin").addEventListener("click", () => {
+            localStorage.removeItem(PANEL_SESSION_KEY);
             document.getElementById("admin-password").value = "";
             setDashboardVisible(false);
             showToast("info", "Sessão encerrada", "Você saiu do painel administrativo.");
@@ -935,7 +940,7 @@
         async function initializePanel() {
             await fetchRemoteAppState();
             refreshDashboard();
-            setDashboardVisible(false);
+            setDashboardVisible(localStorage.getItem(PANEL_SESSION_KEY) === "1");
 
             if (panelPollingTimer) {
                 clearInterval(panelPollingTimer);
