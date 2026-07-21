@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Administrativo</title>
+    <title>Painel Albuquerque Consultoria</title>
     <style>
         :root {
             --bg: #eef3f7;
@@ -204,25 +204,6 @@
             background: #f6f9fb;
             border: 1px solid #e5edf2;
             font-size: 13px;
-        }
-        .payment-item {
-            display: block;
-        }
-        .payment-item-main {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 12px;
-        }
-        .payment-item-title {
-            font-weight: 700;
-            color: var(--text);
-        }
-        .payment-item-meta {
-            margin-top: 8px;
-            font-size: 12px;
-            line-height: 1.5;
-            color: var(--muted);
         }
         .muted {
             color: var(--muted);
@@ -619,8 +600,8 @@
                             <strong id="last-visit-text">Nenhum</strong>
                         </div>
                         <div class="list-item">
-                            <span>Último checkout</span>
-                            <strong id="last-payment-text">Nenhum</strong>
+                            <span>Última atualização</span>
+                            <strong id="last-sync-text">Nenhuma</strong>
                         </div>
                         <div class="list-item">
                             <span>Página ativa</span>
@@ -669,7 +650,7 @@
     </div>
 
     <script>
-        const API_STATE_ENDPOINT = "/api/state";
+        const API_STATE_ENDPOINT = "/api/state.php";
         const DEFAULT_ADMIN = { username: "macaco", password: "macaquinhoronald" };
         const DEFAULT_ANALYTICS_STATE = {
             visits: 0,
@@ -682,8 +663,8 @@
             pixKey: "6769b9cc-dae0-46f1-88db-3144cc4a7ca7",
             pixMerchantName: "SERVICO EMPRESARIAL ASSEGURADO ILTDA",
             pixMerchantCity: "SAO PAULO",
-            secondaryTitle: "Voltaremos em instantes",
-            secondaryMessage: "A equipe da Albuquerque Consultoria MEI DAS esta realizando uma atualizacao programada para melhorar sua experiencia. Em breve o site estara disponivel novamente.",
+            secondaryTitle: "Estamos em manutencao",
+            secondaryMessage: "A equipe da Albuquerque Consultoria MEI DAS esta realizando melhorias para oferecer uma experiencia mais rapida, segura e confiavel. Em breve o atendimento sera retomado.",
             lastVisitAt: "",
             lastPaymentAt: "",
             accessLog: [],
@@ -861,7 +842,7 @@
             document.getElementById("metric-logins").textContent = state.cnpjLogins;
             document.getElementById("metric-active-page").textContent = state.activePage === "primary" ? "Site" : "Manutenção";
             document.getElementById("last-visit-text").textContent = labelDate(state.lastVisitAt);
-            document.getElementById("last-payment-text").textContent = labelDate(state.lastPaymentAt);
+            document.getElementById("last-sync-text").textContent = labelDate(state.lastVisitAt || state.lastPaymentAt);
             document.getElementById("active-page-text").textContent = state.activePage === "primary" ? "Principal" : "Segunda página";
             document.getElementById("status-mode-text").textContent = state.activePage === "primary" ? "Operação normal" : "Em manutenção";
             document.getElementById("status-screen-text").textContent = state.activePage === "primary" ? "Página principal" : "Tela de manutenção";
