@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo</title>
+    <style>
+        :root {
+            --bg: #eef3f7;
+            --card: #ffffff;
+            --line: #d7e1e8;
+            --text: #173042;
+            --muted: #667d8c;
+            --primary: #1f4f6e;
+            --primary-dark: #173b53;
+            --success: #2d7a58;
+            --warning: #b56a1f;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: linear-gradient(180deg, #e6eef5 0%, var(--bg) 100%);
+            color: var(--text);
+        }
+        .page {
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 32px 20px 48px;
+        }
+        .hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--success) 100%);
+            color: #fff;
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: 0 20px 50px rgba(23, 59, 83, 0.18);
+            margin-bottom: 24px;
+        }
+        .hero h1,
+        .hero p {
+            margin: 0;
+        }
+        .hero p {
+            margin-top: 10px;
+            max-width: 760px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        .login-card,
+        .panel-card,
+        .metric-card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            box-shadow: 0 12px 30px rgba(31, 79, 110, 0.07);
+        }
+        .login-card {
+            max-width: 480px;
+            padding: 24px;
+        }
+        .panel-card {
+            padding: 20px;
+        }
+        .grid,
+        .metrics,
+        .insights-grid,
+        .summary-grid,
+        .settings-grid {
+            display: grid;
+            gap: 18px;
+        }
+        .metrics {
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            margin-bottom: 20px;
+        }
+        .summary-grid,
+        .settings-grid {
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            margin-bottom: 20px;
+        }
+        .insights-grid {
+            grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.9fr);
+            margin-bottom: 20px;
+        }
+        .metric-card {
+            padding: 18px;
+        }
+        .metrics .metric-card,
+        .summary-grid .panel-card,
+        .settings-grid .panel-card,
+        .insights-grid .panel-card {
+            animation: rise-in 0.55s ease both;
+        }
+        .metrics .metric-card:nth-child(2) { animation-delay: 0.04s; }
+        .metrics .metric-card:nth-child(3) { animation-delay: 0.08s; }
+        .metrics .metric-card:nth-child(4) { animation-delay: 0.12s; }
+        .metrics .metric-card:nth-child(5) { animation-delay: 0.16s; }
+        .metrics .metric-card:nth-child(6) { animation-delay: 0.20s; }
+        .metric-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--muted);
+        }
+        .metric-value {
+            margin-top: 8px;
+            font-size: 32px;
+            font-weight: 700;
+        }
+        .metric-subtext {
+            margin-top: 6px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+        .section-title {
+            margin: 0 0 14px;
+            font-size: 16px;
+        }
+        .field {
+            margin-bottom: 14px;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        input,
+        textarea {
+            width: 100%;
+            border: 1px solid #c7d4dd;
+            border-radius: 10px;
+            padding: 11px 12px;
+            font: inherit;
+            color: var(--text);
+            background: #fff;
+        }
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            border: 0;
+            border-radius: 10px;
+            padding: 11px 16px;
+            font: inherit;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+        .btn-success {
+            background: var(--success);
+            color: #fff;
+        }
+        .btn-warning {
+            background: var(--warning);
+            color: #fff;
+        }
+        .btn-muted {
+            background: #edf2f6;
+            color: var(--text);
+        }
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 999px;
+            padding: 8px 14px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .status-pill.primary {
+            background: #dff0d8;
+            color: var(--success);
+        }
+        .status-pill.secondary {
+            background: #f9ead8;
+            color: var(--warning);
+        }
+        .list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 12px;
+            background: #f6f9fb;
+            border: 1px solid #e5edf2;
+            font-size: 13px;
+        }
+        .payment-item {
+            display: block;
+        }
+        .payment-item-main {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        .payment-item-title {
+            font-weight: 700;
+            color: var(--text);
+        }
+        .payment-item-meta {
+            margin-top: 8px;
+            font-size: 12px;
+            line-height: 1.5;
+            color: var(--muted);
+        }
+        .muted {
+            color: var(--muted);
+        }
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .chart-card {
+            overflow: hidden;
+        }
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: flex-start;
+            margin-bottom: 18px;
+        }
+        .chart-note {
+            color: var(--muted);
+            font-size: 13px;
+            max-width: 340px;
+            line-height: 1.45;
+        }
+        .trend-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .trend-badge {
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .trend-badge.blue {
+            background: #e7f2fa;
+            color: #245d80;
+        }
+        .trend-badge.gold {
+            background: #fff1d6;
+            color: #a46a17;
+        }
+        .chart-bars {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            align-items: end;
+            gap: 14px;
+            min-height: 240px;
+            padding-top: 8px;
+        }
+        .chart-col {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+            min-height: 240px;
+        }
+        .chart-track {
+            width: 100%;
+            max-width: 62px;
+            height: 190px;
+            border-radius: 18px;
+            background: linear-gradient(180deg, #eff5f9 0%, #e3ebf1 100%);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #dce7ee;
+        }
+        .chart-fill {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: var(--bar-height, 40%);
+            border-radius: 16px 16px 0 0;
+            background: linear-gradient(180deg, #4f9ccb 0%, #1f4f6e 100%);
+            box-shadow: 0 -10px 24px rgba(31, 79, 110, 0.2);
+            transition: height 0.75s cubic-bezier(.22,.61,.36,1);
+        }
+        .chart-fill.alt {
+            background: linear-gradient(180deg, #f5c14b 0%, #c68217 100%);
+            box-shadow: 0 -10px 24px rgba(198, 130, 23, 0.2);
+        }
+        .chart-value {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .chart-label {
+            font-size: 12px;
+            color: var(--muted);
+            text-align: center;
+        }
+        .pulse-panel {
+            position: relative;
+            overflow: hidden;
+        }
+        .pulse-panel::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.4) 46%, transparent 100%);
+            transform: translateX(-140%);
+            animation: sheen 6s ease-in-out infinite;
+        }
+        .mini-stats {
+            display: grid;
+            gap: 12px;
+        }
+        .mini-stat {
+            padding: 14px;
+            border-radius: 14px;
+            background: #f6f9fb;
+            border: 1px solid #e3ebf1;
+        }
+        .mini-stat strong {
+            display: block;
+            font-size: 22px;
+            margin-top: 6px;
+        }
+        .hidden {
+            display: none;
+        }
+        .link-box {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+            text-decoration: none;
+        }
+        .toast-stack {
+            position: fixed;
+            top: 22px;
+            right: 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 2000;
+            pointer-events: none;
+        }
+        .toast {
+            min-width: 280px;
+            max-width: 360px;
+            padding: 14px 16px;
+            border-radius: 16px;
+            color: #fff;
+            box-shadow: 0 18px 40px rgba(10, 24, 34, 0.22);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            backdrop-filter: blur(10px);
+            transform: translateY(-12px) scale(0.96);
+            opacity: 0;
+            animation: toast-in 0.32s ease forwards;
+        }
+        .toast.hide {
+            animation: toast-out 0.28s ease forwards;
+        }
+        .toast.success {
+            background: linear-gradient(135deg, rgba(34, 111, 80, 0.96) 0%, rgba(53, 149, 105, 0.96) 100%);
+        }
+        .toast.error {
+            background: linear-gradient(135deg, rgba(140, 43, 43, 0.96) 0%, rgba(194, 78, 78, 0.96) 100%);
+        }
+        .toast.info {
+            background: linear-gradient(135deg, rgba(28, 73, 101, 0.96) 0%, rgba(52, 116, 157, 0.96) 100%);
+        }
+        .toast-title {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            opacity: 0.86;
+            margin-bottom: 4px;
+        }
+        .toast-message {
+            font-size: 14px;
+            line-height: 1.45;
+        }
+        .btn.loading {
+            position: relative;
+            color: transparent !important;
+            pointer-events: none;
+        }
+        .btn.loading::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 18px;
+            height: 18px;
+            margin: -9px 0 0 -9px;
+            border: 2px solid rgba(255, 255, 255, 0.35);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes toast-in {
+            from {
+                opacity: 0;
+                transform: translateY(-12px) scale(0.96);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        @keyframes toast-out {
+            from {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-8px) scale(0.97);
+            }
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        @keyframes rise-in {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes sheen {
+            0%, 100% { transform: translateX(-140%); }
+            45%, 65% { transform: translateX(140%); }
+        }
+        @media (max-width: 720px) {
+            .page {
+                padding: 20px 14px 36px;
+            }
+            .insights-grid {
+                grid-template-columns: 1fr;
+            }
+            .chart-bars {
+                gap: 10px;
+            }
+            .chart-track {
+                max-width: 48px;
+            }
+            .toast-stack {
+                left: 14px;
+                right: 14px;
+                top: 14px;
+            }
+            .toast {
+                min-width: 0;
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="toast-stack" class="toast-stack"></div>
+    <div class="page">
+        <section class="hero">
+            <h1>Painel Administrativo</h1>
+            <p>Esta área ficou separada da página principal. Aqui você controla qual página fica ativa, acompanha métricas e configura tudo sem mostrar nada do painel no site principal.</p>
+            <a class="link-box" href="../">Abrir página principal</a>
+        </section>
+
+        <section id="login-view" class="login-card">
+            <h2 class="section-title">Entrar no dashboard</h2>
+            <div class="field">
+                <label for="admin-username">Usuário</label>
+                <input id="admin-username" type="text" value="admin">
+            </div>
+            <div class="field">
+                <label for="admin-password">Senha</label>
+                <input id="admin-password" type="password" placeholder="Digite a senha">
+            </div>
+            <button id="btn-admin-login" class="btn btn-primary">Entrar no dashboard</button>
+        </section>
+
+        <section id="dashboard-view" class="hidden">
+            <div class="topbar">
+                <div id="dashboard-status-pill" class="status-pill primary">Página principal ativa</div>
+                <div class="actions">
+                    <button id="btn-open-main" class="btn btn-muted">Abrir site</button>
+                    <button id="btn-logout-admin" class="btn btn-muted">Sair</button>
+                </div>
+            </div>
+
+            <div class="metrics">
+                <div class="metric-card">
+                    <div class="metric-label">Acessos totais</div>
+                    <div id="metric-visits" class="metric-value">0</div>
+                    <div class="metric-subtext">Carregamentos do site</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Visitantes únicos</div>
+                    <div id="metric-unique" class="metric-value">0</div>
+                    <div class="metric-subtext">Sessões diferentes</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Cliques</div>
+                    <div id="metric-clicks" class="metric-value">0</div>
+                    <div class="metric-subtext">Botões e links rastreados</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Logins CNPJ</div>
+                    <div id="metric-logins" class="metric-value">0</div>
+                    <div class="metric-subtext">Formulários enviados</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Pix gerados</div>
+                    <div id="metric-pix" class="metric-value">0</div>
+                    <div class="metric-subtext">Checkouts abertos</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Pagamentos confirmados</div>
+                    <div id="metric-paid" class="metric-value">0</div>
+                    <div class="metric-subtext">Confirmações salvas</div>
+                </div>
+            </div>
+
+            <div class="insights-grid">
+                <div class="panel-card chart-card pulse-panel">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="section-title">Pulso de atividade</h3>
+                            <div class="chart-note">Um resumo visual do comportamento do site. As barras crescem conforme os acessos, cliques, logins, Pix e pagamentos aumentam.</div>
+                        </div>
+                        <div class="trend-badges">
+                            <div class="trend-badge blue" id="badge-top-metric">Mais forte: acessos</div>
+                            <div class="trend-badge gold" id="badge-live-status">Painel ao vivo</div>
+                        </div>
+                    </div>
+                    <div class="chart-bars">
+                        <div class="chart-col">
+                            <div class="chart-track"><div id="bar-visits" class="chart-fill"></div></div>
+                            <div id="bar-value-visits" class="chart-value">0</div>
+                            <div class="chart-label">Acessos</div>
+                        </div>
+                        <div class="chart-col">
+                            <div class="chart-track"><div id="bar-unique" class="chart-fill alt"></div></div>
+                            <div id="bar-value-unique" class="chart-value">0</div>
+                            <div class="chart-label">Únicos</div>
+                        </div>
+                        <div class="chart-col">
+                            <div class="chart-track"><div id="bar-clicks" class="chart-fill"></div></div>
+                            <div id="bar-value-clicks" class="chart-value">0</div>
+                            <div class="chart-label">Cliques</div>
+                        </div>
+                        <div class="chart-col">
+                            <div class="chart-track"><div id="bar-logins" class="chart-fill alt"></div></div>
+                            <div id="bar-value-logins" class="chart-value">0</div>
+                            <div class="chart-label">Logins</div>
+                        </div>
+                        <div class="chart-col">
+                            <div class="chart-track"><div id="bar-pix" class="chart-fill"></div></div>
+                            <div id="bar-value-pix" class="chart-value">0</div>
+                            <div class="chart-label">Pix</div>
+                        </div>
+                        <div class="chart-col">
+                            <div class="chart-track"><div id="bar-paid" class="chart-fill alt"></div></div>
+                            <div id="bar-value-paid" class="chart-value">0</div>
+                            <div class="chart-label">Pagos</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-card">
+                    <h3 class="section-title">Leitura rápida</h3>
+                    <div class="mini-stats">
+                        <div class="mini-stat">
+                            Conversão em pagamento
+                            <strong id="mini-conversion">0%</strong>
+                            <span class="muted">Pagamentos confirmados sobre Pix gerados.</span>
+                        </div>
+                        <div class="mini-stat">
+                            Engajamento de clique
+                            <strong id="mini-engagement">0</strong>
+                            <span class="muted">Volume de interações registradas na navegação.</span>
+                        </div>
+                        <div class="mini-stat">
+                            Situação do ambiente
+                            <strong id="mini-uptime">Operação normal</strong>
+                            <span class="muted">Reflete imediatamente o estado ativo do site.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="summary-grid">
+                <div class="panel-card">
+                    <h3 class="section-title">Controle das páginas</h3>
+                    <p class="muted">Ative a manutenção quando quiser esconder a página principal e mostrar a tela de obra.</p>
+                    <div class="actions">
+                        <button id="btn-activate-primary" class="btn btn-success">Reativar página principal</button>
+                        <button id="btn-activate-secondary" class="btn btn-warning">Colocar em manutenção</button>
+                    </div>
+                    <div class="list" style="margin-top: 14px;">
+                        <div class="list-item">
+                            <span>Último acesso</span>
+                            <strong id="last-visit-text">Nenhum</strong>
+                        </div>
+                        <div class="list-item">
+                            <span>Último checkout</span>
+                            <strong id="last-payment-text">Nenhum</strong>
+                        </div>
+                        <div class="list-item">
+                            <span>Página ativa</span>
+                            <strong id="active-page-text">Principal</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-card">
+                    <h3 class="section-title">Status atual</h3>
+                    <div class="list">
+                        <div class="list-item">
+                            <span>Modo do site</span>
+                            <strong id="status-mode-text">Principal</strong>
+                        </div>
+                        <div class="list-item">
+                            <span>Tela exibida ao visitante</span>
+                            <strong id="status-screen-text">Página principal</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-grid">
+                <div class="panel-card">
+                    <h3 class="section-title">Configurações gerais</h3>
+                    <div class="field">
+                        <label for="settings-admin-user">Usuário do painel</label>
+                        <input id="settings-admin-user" type="text">
+                    </div>
+                    <div class="field">
+                        <label for="settings-admin-pass">Senha do painel</label>
+                        <input id="settings-admin-pass" type="text">
+                    </div>
+                    <div class="field">
+                        <label for="settings-pix-email">Chave Pix ou e-mail</label>
+                        <input id="settings-pix-email" type="text">
+                    </div>
+                    <div class="field">
+                        <label for="settings-secondary-title">Título da segunda página</label>
+                        <input id="settings-secondary-title" type="text">
+                    </div>
+                    <div class="field">
+                        <label for="settings-secondary-message">Mensagem da segunda página</label>
+                        <textarea id="settings-secondary-message"></textarea>
+                    </div>
+                    <button id="btn-save-settings" class="btn btn-primary">Salvar configurações</button>
+                </div>
+
+                <div class="panel-card">
+                    <h3 class="section-title">Últimos acessos</h3>
+                    <div id="access-log-list" class="list">
+                        <div class="muted">Nenhum acesso registrado ainda.</div>
+                    </div>
+                </div>
+
+                <div class="panel-card">
+                    <h3 class="section-title">Histórico de pagamentos</h3>
+                    <div id="payments-log-list" class="list">
+                        <div class="muted">Nenhum pagamento registrado ainda.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const ANALYTICS_STORAGE_KEY = "pgmeiAdminAnalytics";
+        const ADMIN_STORAGE_KEY = "pgmeiAdminCredentials";
+        const DEFAULT_ADMIN = { username: "admin", password: "admin123" };
+
+        function getAdminCredentials() {
+            try {
+                const raw = localStorage.getItem(ADMIN_STORAGE_KEY);
+                if (!raw) return DEFAULT_ADMIN;
+                const parsed = JSON.parse(raw);
+                return {
+                    username: parsed.username || DEFAULT_ADMIN.username,
+                    password: parsed.password || DEFAULT_ADMIN.password
+                };
+            } catch (error) {
+                return DEFAULT_ADMIN;
+            }
+        }
+
+        function getAnalyticsState() {
+            const fallback = {
+                visits: 0,
+                uniqueVisitors: 0,
+                totalClicks: 0,
+                cnpjLogins: 0,
+                pixGenerated: 0,
+                paymentsConfirmed: 0,
+                activePage: "primary",
+                pixKey: "6769b9cc-dae0-46f1-88db-3144cc4a7ca7",
+                pixMerchantName: "SERVICO EMPRESARIAL ASSEGURADO ILTDA",
+                pixMerchantCity: "SAO PAULO",
+                secondaryTitle: "Estamos preparando a página principal",
+                secondaryMessage: "Enquanto isso, esta segunda página fica ativa para receber seus acessos com segurança. O administrador pode alternar isso no painel.",
+                lastVisitAt: "",
+                lastPaymentAt: "",
+                accessLog: [],
+                payments: []
+            };
+
+            try {
+                const raw = localStorage.getItem(ANALYTICS_STORAGE_KEY);
+                if (!raw) return fallback;
+                return Object.assign({}, fallback, JSON.parse(raw));
+            } catch (error) {
+                return fallback;
+            }
+        }
+
+        function saveAnalyticsState(state) {
+            localStorage.setItem(ANALYTICS_STORAGE_KEY, JSON.stringify(state));
+        }
+
+        function saveAdminCredentials(username, password) {
+            localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify({ username, password }));
+        }
+
+        function showToast(type, title, message) {
+            const stack = document.getElementById("toast-stack");
+            const toast = document.createElement("div");
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <div class="toast-title">${title}</div>
+                <div class="toast-message">${message}</div>
+            `;
+            stack.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add("hide");
+                setTimeout(() => toast.remove(), 280);
+            }, 2600);
+        }
+
+        function pulseButton(button, callback) {
+            button.classList.add("loading");
+            setTimeout(() => {
+                try {
+                    callback();
+                } finally {
+                    button.classList.remove("loading");
+                }
+            }, 520);
+        }
+
+        function labelDate(dateValue) {
+            return dateValue ? new Date(dateValue).toLocaleString("pt-BR") : "Nenhum";
+        }
+
+        function renderList(targetId, items, emptyText, formatter) {
+            const target = document.getElementById(targetId);
+            target.innerHTML = "";
+
+            if (!items.length) {
+                target.innerHTML = `<div class="muted">${emptyText}</div>`;
+                return;
+            }
+
+            items.forEach((item) => {
+                const wrapper = document.createElement("div");
+                wrapper.className = "list-item";
+                wrapper.innerHTML = formatter(item);
+                target.appendChild(wrapper);
+            });
+        }
+
+        function updateActivityChart(state) {
+            const metrics = [
+                { key: "visits", label: "acessos", element: "bar-visits", value: "bar-value-visits" },
+                { key: "uniqueVisitors", label: "únicos", element: "bar-unique", value: "bar-value-unique" },
+                { key: "totalClicks", label: "cliques", element: "bar-clicks", value: "bar-value-clicks" },
+                { key: "cnpjLogins", label: "logins", element: "bar-logins", value: "bar-value-logins" },
+                { key: "pixGenerated", label: "pix", element: "bar-pix", value: "bar-value-pix" },
+                { key: "paymentsConfirmed", label: "pagamentos", element: "bar-paid", value: "bar-value-paid" }
+            ];
+
+            const maxValue = Math.max(1, ...metrics.map((item) => state[item.key] || 0));
+            const strongest = metrics.reduce((best, item) => (state[item.key] > (state[best.key] || 0) ? item : best), metrics[0]);
+
+            metrics.forEach((item) => {
+                const rawValue = state[item.key] || 0;
+                const height = Math.max(8, Math.round((rawValue / maxValue) * 100));
+                document.getElementById(item.element).style.setProperty("--bar-height", `${height}%`);
+                document.getElementById(item.value).textContent = rawValue;
+            });
+
+            document.getElementById("badge-top-metric").textContent = `Mais forte: ${strongest.label}`;
+            document.getElementById("badge-live-status").textContent = state.activePage === "primary" ? "Operação normal" : "Modo manutenção";
+
+            const conversion = state.pixGenerated > 0 ? Math.round((state.paymentsConfirmed / state.pixGenerated) * 100) : 0;
+            document.getElementById("mini-conversion").textContent = `${conversion}%`;
+            document.getElementById("mini-engagement").textContent = state.totalClicks;
+            document.getElementById("mini-uptime").textContent = state.activePage === "primary" ? "Operação normal" : "Em manutenção";
+        }
+
+        function refreshDashboard() {
+            const state = getAnalyticsState();
+            const credentials = getAdminCredentials();
+
+            document.getElementById("metric-visits").textContent = state.visits;
+            document.getElementById("metric-unique").textContent = state.uniqueVisitors;
+            document.getElementById("metric-clicks").textContent = state.totalClicks;
+            document.getElementById("metric-logins").textContent = state.cnpjLogins;
+            document.getElementById("metric-pix").textContent = state.pixGenerated;
+            document.getElementById("metric-paid").textContent = state.paymentsConfirmed;
+            document.getElementById("last-visit-text").textContent = labelDate(state.lastVisitAt);
+            document.getElementById("last-payment-text").textContent = labelDate(state.lastPaymentAt);
+            document.getElementById("active-page-text").textContent = state.activePage === "primary" ? "Principal" : "Segunda página";
+            document.getElementById("status-mode-text").textContent = state.activePage === "primary" ? "Operação normal" : "Em manutenção";
+            document.getElementById("status-screen-text").textContent = state.activePage === "primary" ? "Página principal" : "Tela de manutenção";
+            document.getElementById("settings-admin-user").value = credentials.username;
+            document.getElementById("settings-admin-pass").value = credentials.password;
+            document.getElementById("settings-pix-email").value = state.pixKey;
+            document.getElementById("settings-secondary-title").value = state.secondaryTitle;
+            document.getElementById("settings-secondary-message").value = state.secondaryMessage;
+
+            const statusPill = document.getElementById("dashboard-status-pill");
+            statusPill.className = `status-pill ${state.activePage === "primary" ? "primary" : "secondary"}`;
+            statusPill.textContent = state.activePage === "primary" ? "Página principal ativa" : "Segunda página ativa";
+
+            renderList("access-log-list", state.accessLog, "Nenhum acesso registrado ainda.", (item) => {
+                return `<span>${labelDate(item.time)}</span><strong>${item.page === "primary" ? "Principal" : "Secundária"}</strong>`;
+            });
+
+            renderList("payments-log-list", state.payments, "Nenhum pagamento registrado ainda.", (item) => {
+                return `
+                    <div class="payment-item">
+                        <div class="payment-item-main">
+                            <div>
+                                <div class="payment-item-title">${item.companyName || "Razao social nao informada"}</div>
+                                <div class="muted">${item.label}</div>
+                            </div>
+                            <strong>${item.status} • ${item.amount}</strong>
+                        </div>
+                        <div class="payment-item-meta">
+                            CNPJ: ${item.cnpj || "Nao informado"}<br>
+                            QR gerado em: ${labelDate(item.time)}
+                        </div>
+                    </div>
+                `;
+            });
+
+            updateActivityChart(state);
+        }
+
+        function setDashboardVisible(isVisible) {
+            document.getElementById("login-view").classList.toggle("hidden", isVisible);
+            document.getElementById("dashboard-view").classList.toggle("hidden", !isVisible);
+        }
+
+        function authenticate() {
+            const credentials = getAdminCredentials();
+            const username = document.getElementById("admin-username").value.trim();
+            const password = document.getElementById("admin-password").value;
+
+            if (username === credentials.username && password === credentials.password) {
+                setDashboardVisible(true);
+                refreshDashboard();
+                showToast("success", "Acesso liberado", "Login realizado com sucesso no painel.");
+            } else {
+                showToast("error", "Acesso negado", "Usuário ou senha inválidos. Revise os dados e tente novamente.");
+            }
+        }
+
+        function saveSettings() {
+            const state = getAnalyticsState();
+            const username = document.getElementById("settings-admin-user").value.trim() || DEFAULT_ADMIN.username;
+            const password = document.getElementById("settings-admin-pass").value.trim() || DEFAULT_ADMIN.password;
+
+            state.pixKey = document.getElementById("settings-pix-email").value.trim() || state.pixKey;
+            state.secondaryTitle = document.getElementById("settings-secondary-title").value.trim() || state.secondaryTitle;
+            state.secondaryMessage = document.getElementById("settings-secondary-message").value.trim() || state.secondaryMessage;
+
+            saveAdminCredentials(username, password);
+            saveAnalyticsState(state);
+            refreshDashboard();
+            showToast("success", "Configurações salvas", "As alterações do painel foram aplicadas com sucesso.");
+        }
+
+        function setActivePage(pageName) {
+            const state = getAnalyticsState();
+            state.activePage = pageName;
+            saveAnalyticsState(state);
+            refreshDashboard();
+            showToast(
+                "info",
+                pageName === "primary" ? "Página principal ativa" : "Modo manutenção ativo",
+                pageName === "primary"
+                    ? "O site principal voltou ao ar para os visitantes."
+                    : "A tela de manutenção está sendo exibida aos visitantes."
+            );
+        }
+
+        document.getElementById("btn-admin-login").addEventListener("click", function() {
+            pulseButton(this, authenticate);
+        });
+        document.getElementById("btn-logout-admin").addEventListener("click", () => {
+            document.getElementById("admin-password").value = "";
+            setDashboardVisible(false);
+            showToast("info", "Sessão encerrada", "Você saiu do painel administrativo.");
+        });
+        document.getElementById("btn-open-main").addEventListener("click", () => {
+            window.open("../", "_blank");
+        });
+        document.getElementById("btn-save-settings").addEventListener("click", function() {
+            pulseButton(this, saveSettings);
+        });
+        document.getElementById("btn-activate-primary").addEventListener("click", function() {
+            pulseButton(this, () => setActivePage("primary"));
+        });
+        document.getElementById("btn-activate-secondary").addEventListener("click", function() {
+            pulseButton(this, () => setActivePage("secondary"));
+        });
+        window.addEventListener("storage", refreshDashboard);
+
+        refreshDashboard();
+        setDashboardVisible(false);
+    </script>
+</body>
+</html>
