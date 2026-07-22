@@ -44,3 +44,4 @@ Observacoes importantes:
 - O estado global nao depende mais de arquivo gravavel no servidor.
 - `app-state.json` continua no projeto apenas para desenvolvimento local.
 - Se a API responder erro de configuracao, revise se o Blob foi realmente conectado ao projeto e se o deploy mais recente recebeu a variavel `BLOB_READ_WRITE_TOKEN`.
+- Se voce corrigir a API ou qualquer arquivo do projeto, envie um novo commit para o GitHub antes de usar `Redeploy` na Vercel, porque o redeploy publica o ultimo commit remoto.
