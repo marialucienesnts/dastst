@@ -4,7 +4,7 @@ Arquivos principais:
 - index.html
 - login/index.html
 - oficial/index.html
-- manutencao/index.html
+- adv/index.html
 - painel/index.html
 - assets/app-common.js
 - assets/painel.js
@@ -37,17 +37,19 @@ Rotas finais esperadas:
 - Site principal: https://www.albuquerqueconsultoriameidas.com/
 - Login: https://www.albuquerqueconsultoriameidas.com/login/
 - Area oficial: https://www.albuquerqueconsultoriameidas.com/oficial/
-- Manutencao: https://www.albuquerqueconsultoriameidas.com/manutencao/
+- Pagina ADV: https://www.albuquerqueconsultoriameidas.com/adv/
+- Privacidade ADV: https://www.albuquerqueconsultoriameidas.com/adv/politica-privacidade.html
+- Termos ADV: https://www.albuquerqueconsultoriameidas.com/adv/termos-uso.html
 - Painel: https://www.albuquerqueconsultoriameidas.com/painel
 
 Comportamento do painel:
 - Login fixo: `macaco`
 - Senha fixa: `macaquinhoronald`
 - Sessao continua logada apos `F5`
-- Botao de manutencao altera o estado global do site
+- Botao do painel altera o estado global entre pagina principal e pagina ADV
 - Acessos, cliques, logins e geracao de Pix ficam salvos no Supabase
 
 Observacoes:
 - O projeto nao depende mais de `/api/state`.
 - Os arquivos `api/state.js` e `app-state.json` podem continuar no projeto para historico e testes locais, mas a versao atual usa Supabase.
-- Se quiser que todos os aparelhos vejam a manutencao ao mesmo tempo, o `assets/supabase-config.js` precisa estar preenchido com o projeto real.
+- Se quiser que todos os aparelhos vejam a pagina ADV ao mesmo tempo, o `assets/supabase-config.js` precisa estar preenchido com o projeto real.

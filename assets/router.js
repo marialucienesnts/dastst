@@ -15,8 +15,8 @@
       const session = window.PGMEI.getSession();
 
       if (state.analytics.activePage === "secondary") {
-        document.title = "PGMEI - Manutencao";
-        window.PGMEI.redirect("/manutencao/");
+        document.title = "Fabio Albuquerque | Advocacia para MEI e Pequenas Empresas";
+        window.PGMEI.redirect("/adv/");
         return;
       }
 

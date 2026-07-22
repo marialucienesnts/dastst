@@ -20,8 +20,8 @@
       pixKey: "6769b9cc-dae0-46f1-88db-3144cc4a7ca7",
       pixMerchantName: "SERVICO EMPRESARIAL ASSEGURADO ILTDA",
       pixMerchantCity: "SAO PAULO",
-      secondaryTitle: "Estamos em manutencao",
-      secondaryMessage: "A equipe da Albuquerque Consultoria MEI DAS esta realizando melhorias para oferecer uma experiencia mais rapida, segura e confiavel. Em breve o atendimento sera retomado.",
+      secondaryTitle: "Pagina ADV ativa",
+      secondaryMessage: "A pagina alternativa ADV esta ativa para exibir o conteudo institucional aos visitantes.",
       lastVisitAt: "",
       lastPaymentAt: "",
       accessLog: [],
@@ -314,6 +314,22 @@
       return nextState;
     }
 
+    if (action === "log_pix_copy") {
+      const cnpj = String(safeParams.cnpj || "").trim();
+      const companyName = String(safeParams.companyName || "Razao social nao informada").trim();
+      const accessItem = analytics.accessLog.find(function(item) {
+        return String(item.cnpj || "").trim() === cnpj && String(item.companyName || "").trim() === companyName;
+      });
+
+      if (accessItem) {
+        accessItem.pixGenerated = true;
+        accessItem.pixCopied = true;
+        accessItem.pixCopiedAt = now;
+      }
+
+      return nextState;
+    }
+
     throw new Error("INVALID_ACTION");
   }
 
@@ -412,7 +428,7 @@
 
   function applyPageTitleByState(state) {
     if (state && state.analytics && state.analytics.activePage === "secondary") {
-      document.title = "PGMEI - Manutencao";
+      document.title = "Fabio Albuquerque | Advocacia para MEI e Pequenas Empresas";
       return;
     }
 
@@ -420,8 +436,8 @@
       document.title = "Painel Albuquerque Consultoria";
       return;
     }
-    if (window.location.pathname.startsWith("/manutencao")) {
-      document.title = "PGMEI - Manutencao";
+    if (window.location.pathname.startsWith("/adv")) {
+      document.title = "Fabio Albuquerque | Advocacia para MEI e Pequenas Empresas";
       return;
     }
     if (window.location.pathname.startsWith("/oficial")) {

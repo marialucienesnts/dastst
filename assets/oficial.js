@@ -210,6 +210,15 @@
     field.setSelectionRange(0, field.value.length);
     document.execCommand("copy");
     toastr.success("Codigo Pix copiado.");
+
+    if (currentPaymentData) {
+      window.PGMEI.sendAction("log_pix_copy", {
+        cnpj: currentPaymentData.cnpj,
+        companyName: currentPaymentData.companyName
+      }).catch(function(error) {
+        console.warn("Falha ao registrar copia do Pix:", error.message);
+      });
+    }
   }
 
   async function renderPayment(total, selectedItems) {
@@ -277,7 +286,7 @@
       appState = await window.PGMEI.fetchState();
       window.PGMEI.applyPageTitleByState(appState);
       if (appState.analytics.activePage === "secondary") {
-        window.PGMEI.redirect("/manutencao/");
+        window.PGMEI.redirect("/adv/");
       }
     } catch (error) {
       console.warn("Falha ao sincronizar estado oficial:", error.message);
@@ -295,10 +304,9 @@
       appState = await window.PGMEI.fetchState();
       window.PGMEI.applyPageTitleByState(appState);
       if (appState.analytics.activePage === "secondary") {
-        window.PGMEI.redirect("/manutencao/");
+        window.PGMEI.redirect("/adv/");
         return;
       }
-      await window.PGMEI.recordVisit("primary", "/oficial/");
     } catch (error) {
       console.warn("Falha na inicializacao da pagina oficial:", error.message);
     }
