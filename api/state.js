@@ -34,7 +34,7 @@ const DEFAULT_STATE = {
 
 const LOCAL_STATE_FILE = path.join(process.cwd(), "app-state.json");
 const STATE_BLOB_PATH = process.env.STATE_BLOB_PATH || "pgmei/app-state.json";
-const STATE_BLOB_TOKEN = process.env.STATE_BLOB_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN || "";
+const STATE_BLOB_TOKEN = process.env.STATE_BLOB_READ_WRITE_TOKEN || "";
 const BLOB_ACCESS = "public";
 
 function mergeState(rawState) {
@@ -131,6 +131,11 @@ async function readBlobState() {
 
       return defaultState;
     }
+
+    if (message.includes("403")) {
+      throw new Error("STATE_BLOB_FORBIDDEN");
+    }
+
     throw error;
   }
 }
@@ -292,7 +297,15 @@ module.exports = async (req, res) => {
     if (message === "BLOB_NOT_CONFIGURED") {
       jsonResponse(res, 500, {
         error: "BLOB_NOT_CONFIGURED",
-        message: "Configure um Blob publico para o estado e a variavel STATE_BLOB_READ_WRITE_TOKEN ou BLOB_READ_WRITE_TOKEN."
+        message: "Configure um Blob publico para o estado e a variavel STATE_BLOB_READ_WRITE_TOKEN."
+      });
+      return;
+    }
+
+    if (message === "STATE_BLOB_FORBIDDEN") {
+      jsonResponse(res, 500, {
+        error: "STATE_BLOB_FORBIDDEN",
+        message: "A API ainda esta usando o Blob/token errado. Conecte um Blob PUBLICO com prefixo STATE_BLOB e redeploy."
       });
       return;
     }
