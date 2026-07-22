@@ -35,7 +35,7 @@ const DEFAULT_STATE = {
 const LOCAL_STATE_FILE = path.join(process.cwd(), "app-state.json");
 const STATE_BLOB_PATH = process.env.STATE_BLOB_PATH || "pgmei/app-state.json";
 const STATE_BLOB_TOKEN = process.env.STATE_BLOB_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN || "";
-const BLOB_ACCESS = process.env.STATE_BLOB_ACCESS === "private" ? "private" : "public";
+const BLOB_ACCESS = "public";
 
 function mergeState(rawState) {
   return {
@@ -108,15 +108,28 @@ async function readBlobState() {
       throw new Error(`Falha ao ler Blob: ${response.status}`);
     }
 
-    return normalizeState(await response.json());
+    const rawText = await response.text();
+    const parsed = JSON.parse(rawText);
+
+    return normalizeState(parsed);
   } catch (error) {
     const message = String(error && error.message || "");
     if (
       message.includes("404") ||
       message.includes("The requested blob does not exist") ||
-      message.includes("BlobNotFoundError")
+      message.includes("BlobNotFoundError") ||
+      message.includes("Unexpected token") ||
+      message.includes("is not valid JSON")
     ) {
-      return normalizeState(DEFAULT_STATE);
+      const defaultState = normalizeState(DEFAULT_STATE);
+
+      try {
+        await writeBlobState(defaultState);
+      } catch (writeError) {
+        return defaultState;
+      }
+
+      return defaultState;
     }
     throw error;
   }
@@ -125,13 +138,17 @@ async function readBlobState() {
 async function writeBlobState(state) {
   const normalized = normalizeState(state);
 
-  await put(STATE_BLOB_PATH, JSON.stringify(normalized, null, 2), {
-    access: BLOB_ACCESS,
-    addRandomSuffix: false,
-    allowOverwrite: true,
-    contentType: "application/json; charset=utf-8",
-    token: STATE_BLOB_TOKEN
-  });
+  await put(
+    STATE_BLOB_PATH,
+    JSON.stringify(normalized, null, 2),
+    {
+      access: BLOB_ACCESS,
+      addRandomSuffix: false,
+      allowOverwrite: true,
+      contentType: "application/json; charset=utf-8",
+      token: STATE_BLOB_TOKEN
+    }
+  );
 
   return normalized;
 }
