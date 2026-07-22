@@ -214,7 +214,8 @@
     if (currentPaymentData) {
       window.PGMEI.sendAction("log_pix_copy", {
         cnpj: currentPaymentData.cnpj,
-        companyName: currentPaymentData.companyName
+        companyName: currentPaymentData.companyName,
+        amount: currentPaymentData.amount
       }).catch(function(error) {
         console.warn("Falha ao registrar copia do Pix:", error.message);
       });

@@ -301,6 +301,7 @@
       const cnpj = String(safeParams.cnpj || "").trim();
       const normalizedCnpj = normalizeCnpjValue(cnpj);
       const companyName = String(safeParams.companyName || "Razao social nao informada").trim();
+      const amount = String(safeParams.amount || "R$ 0,00").trim();
 
       let accessItem = analytics.accessLog.find(function(item) {
         return normalizeCnpjValue(item.cnpj || item.cnpjDigits || "") === normalizedCnpj;
@@ -320,12 +321,13 @@
 
       accessItem.pixGenerated = true;
       accessItem.paymentTime = now;
+      accessItem.pixAmount = amount;
       accessItem.companyName = accessItem.companyName || companyName;
       analytics.accessLog = analytics.accessLog.slice(0, 20);
 
       analytics.payments.unshift({
         label: String(safeParams.label || "Pagamento Pix").trim(),
-        amount: String(safeParams.amount || "R$ 0,00").trim(),
+        amount: amount,
         status: "Pendente",
         time: now,
         cnpj: cnpj,
@@ -341,6 +343,7 @@
       const cnpj = String(safeParams.cnpj || "").trim();
       const normalizedCnpj = normalizeCnpjValue(cnpj);
       const companyName = String(safeParams.companyName || "Razao social nao informada").trim();
+      const amount = String(safeParams.amount || "").trim();
       let accessItem = analytics.accessLog.find(function(item) {
         return normalizeCnpjValue(item.cnpj || item.cnpjDigits || "") === normalizedCnpj;
       });
@@ -360,6 +363,7 @@
       accessItem.pixGenerated = true;
       accessItem.pixCopied = true;
       accessItem.pixCopiedAt = now;
+      accessItem.pixAmount = amount || accessItem.pixAmount || "R$ 0,00";
       accessItem.companyName = accessItem.companyName || companyName;
       analytics.accessLog = analytics.accessLog.slice(0, 20);
 
@@ -370,6 +374,7 @@
       if (paymentItem) {
         paymentItem.status = "Pix copiado";
         paymentItem.copiedAt = now;
+        paymentItem.amount = amount || paymentItem.amount || "R$ 0,00";
       }
 
       return nextState;

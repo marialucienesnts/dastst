@@ -88,6 +88,68 @@
     return dateValue ? new Date(dateValue).toLocaleString("pt-BR") : "Nenhum";
   }
 
+  function parseCurrencyValue(currencyText) {
+    const normalized = String(currencyText || "")
+      .replace(/[^\d,.-]/g, "")
+      .replace(/\./g, "")
+      .replace(",", ".");
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  function formatCurrencyValue(value) {
+    return `R$ ${Number(value || 0).toFixed(2).replace(".", ",")}`;
+  }
+
+  function buildPeriodReport(items, days) {
+    const now = Date.now();
+    const limit = days * 24 * 60 * 60 * 1000;
+    const summary = {
+      generatedCount: 0,
+      generatedAmount: 0,
+      copiedCount: 0,
+      copiedAmount: 0
+    };
+
+    items.forEach((item) => {
+      const generatedTime = item.paymentTime || item.time;
+      const copiedTime = item.pixCopiedAt || "";
+      const amount = parseCurrencyValue(item.pixAmount);
+
+      if (item.pixGenerated && generatedTime) {
+        const diff = now - new Date(generatedTime).getTime();
+        if (diff >= 0 && diff <= limit) {
+          summary.generatedCount += 1;
+          summary.generatedAmount += amount;
+        }
+      }
+
+      if (item.pixCopied && copiedTime) {
+        const diff = now - new Date(copiedTime).getTime();
+        if (diff >= 0 && diff <= limit) {
+          summary.copiedCount += 1;
+          summary.copiedAmount += amount;
+        }
+      }
+    });
+
+    return summary;
+  }
+
+  function updatePeriodReports(state) {
+    const accessItems = (state.accessLog || []).filter((item) => item.cnpj || item.pixGenerated || item.pixCopied);
+    const weekly = buildPeriodReport(accessItems, 7);
+    const biweekly = buildPeriodReport(accessItems, 15);
+    const monthly = buildPeriodReport(accessItems, 30);
+
+    document.getElementById("report-weekly").textContent =
+      `Gerados: ${weekly.generatedCount} (${formatCurrencyValue(weekly.generatedAmount)}) | Copiados: ${weekly.copiedCount} (${formatCurrencyValue(weekly.copiedAmount)})`;
+    document.getElementById("report-biweekly").textContent =
+      `Gerados: ${biweekly.generatedCount} (${formatCurrencyValue(biweekly.generatedAmount)}) | Copiados: ${biweekly.copiedCount} (${formatCurrencyValue(biweekly.copiedAmount)})`;
+    document.getElementById("report-monthly").textContent =
+      `Gerados: ${monthly.generatedCount} (${formatCurrencyValue(monthly.generatedAmount)}) | Copiados: ${monthly.copiedCount} (${formatCurrencyValue(monthly.copiedAmount)})`;
+  }
+
   function renderList(targetId, items, emptyText, formatter) {
     const target = document.getElementById(targetId);
     target.innerHTML = "";
@@ -159,13 +221,14 @@
     renderList("access-log-list", accessItems.length ? accessItems : state.accessLog, "Nenhum acesso registrado ainda.", (item) => {
       const cnpjText = item.cnpj ? item.cnpj : "Nao informado";
       const companyText = item.companyName ? item.companyName : (item.page === "primary" ? "Acesso geral" : "Pagina ADV");
+      const amountText = item.pixAmount ? item.pixAmount : "Sem valor";
       let pixText = "Nao gerou Pix";
       if (item.pixCopied) {
         pixText = "Pix copiado";
       } else if (item.pixGenerated) {
         pixText = "Gerou Pix";
       }
-      const paidHint = item.pixCopiedAt ? "Possivel pagamento" : pixText;
+      const paidHint = item.pixCopiedAt ? `Possivel pagamento - ${amountText}` : `${pixText}${item.pixGenerated ? ` - ${amountText}` : ""}`;
       return `
         <div><strong>${labelDate(item.time)}</strong></div>
         <div>${companyText}</div>
@@ -175,6 +238,7 @@
     });
 
     updateActivityChart(state);
+    updatePeriodReports(state);
   }
 
   function setDashboardVisible(isVisible) {
