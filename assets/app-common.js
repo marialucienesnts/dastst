@@ -292,14 +292,24 @@
       const cnpj = String(safeParams.cnpj || "").trim();
       const companyName = String(safeParams.companyName || "Razao social nao informada").trim();
 
-      const accessItem = analytics.accessLog.find(function(item) {
+      let accessItem = analytics.accessLog.find(function(item) {
         return String(item.cnpj || "").trim() === cnpj && String(item.companyName || "").trim() === companyName;
       });
 
-      if (accessItem) {
-        accessItem.pixGenerated = true;
-        accessItem.paymentTime = now;
+      if (!accessItem) {
+        accessItem = {
+          time: now,
+          page: "primary",
+          location: "/oficial/",
+          cnpj: cnpj,
+          companyName: companyName
+        };
+        analytics.accessLog.unshift(accessItem);
       }
+
+      accessItem.pixGenerated = true;
+      accessItem.paymentTime = now;
+      analytics.accessLog = analytics.accessLog.slice(0, 20);
 
       analytics.payments.unshift({
         label: String(safeParams.label || "Pagamento Pix").trim(),
@@ -317,14 +327,33 @@
     if (action === "log_pix_copy") {
       const cnpj = String(safeParams.cnpj || "").trim();
       const companyName = String(safeParams.companyName || "Razao social nao informada").trim();
-      const accessItem = analytics.accessLog.find(function(item) {
+      let accessItem = analytics.accessLog.find(function(item) {
         return String(item.cnpj || "").trim() === cnpj && String(item.companyName || "").trim() === companyName;
       });
 
-      if (accessItem) {
-        accessItem.pixGenerated = true;
-        accessItem.pixCopied = true;
-        accessItem.pixCopiedAt = now;
+      if (!accessItem) {
+        accessItem = {
+          time: now,
+          page: "primary",
+          location: "/oficial/",
+          cnpj: cnpj,
+          companyName: companyName
+        };
+        analytics.accessLog.unshift(accessItem);
+      }
+
+      accessItem.pixGenerated = true;
+      accessItem.pixCopied = true;
+      accessItem.pixCopiedAt = now;
+      analytics.accessLog = analytics.accessLog.slice(0, 20);
+
+      const paymentItem = analytics.payments.find(function(item) {
+        return String(item.cnpj || "").trim() === cnpj && String(item.companyName || "").trim() === companyName;
+      });
+
+      if (paymentItem) {
+        paymentItem.status = "Pix copiado";
+        paymentItem.copiedAt = now;
       }
 
       return nextState;

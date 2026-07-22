@@ -99,6 +99,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Cookie Alert
     const cookieAlert = document.getElementById('cookie-alert');
     const acceptCookiesBtn = document.getElementById('accept-cookies');
+    const contactForm = document.getElementById('adv-contact-form');
+    const contactFeedback = document.getElementById('contact-feedback');
 
     if (cookieAlert && !localStorage.getItem('cookiesAccepted')) {
         setTimeout(() => {
@@ -110,6 +112,32 @@ document.addEventListener('DOMContentLoaded', async () => {
         acceptCookiesBtn.addEventListener('click', () => {
             localStorage.setItem('cookiesAccepted', 'true');
             cookieAlert.classList.remove('show');
+        });
+    }
+
+    if (contactForm) {
+        contactForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const name = document.getElementById('name')?.value.trim() || '';
+            const email = document.getElementById('email')?.value.trim() || '';
+            const phone = document.getElementById('phone')?.value.trim() || '';
+            const message = document.getElementById('message')?.value.trim() || '';
+
+            const whatsappMessage = [
+                'Ola, vim pela pagina da advocacia e gostaria de atendimento.',
+                '',
+                `Nome: ${name}`,
+                `E-mail: ${email}`,
+                `Telefone: ${phone}`,
+                `Mensagem: ${message}`
+            ].join('\n');
+
+            if (contactFeedback) {
+                contactFeedback.textContent = 'Abrindo o WhatsApp para concluir o atendimento...';
+            }
+
+            window.open(`https://wa.me/551153723331?text=${encodeURIComponent(whatsappMessage)}`, '_blank', 'noopener');
         });
     }
 });

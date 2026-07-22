@@ -164,21 +164,21 @@
                         <div class="contact-icon"><i class="fas fa-map-marker-alt"></i></div>
                         <div>
                             <h4>Endereço</h4>
-                            <p>Rua Jeca Tatu, 1686<br>Jardim Cacique, Suzano - SP<br>CEP: 08616-050</p>
+                            <p><a class="contact-link" href="https://maps.google.com/?q=Rua+Jeca+Tatu,+1686,+Jardim+Cacique,+Suzano+-+SP,+08616-050" target="_blank" rel="noopener noreferrer">Rua Jeca Tatu, 1686<br>Jardim Cacique, Suzano - SP<br>CEP: 08616-050</a></p>
                         </div>
                     </div>
                     <div class="contact-info-item">
                         <div class="contact-icon"><i class="fas fa-phone"></i></div>
                         <div>
                             <h4>Telefone</h4>
-                            <p>(11) 5372-3331</p>
+                            <p><a class="contact-link" href="tel:+551153723331">(11) 5372-3331</a></p>
                         </div>
                     </div>
                     <div class="contact-info-item">
                         <div class="contact-icon"><i class="fas fa-envelope"></i></div>
                         <div>
                             <h4>E-mail</h4>
-                            <p>contato@florianoconsultoriamei.com</p>
+                            <p><a class="contact-link" href="mailto:contato@florianoconsultoriamei.com">contato@florianoconsultoriamei.com</a></p>
                         </div>
                     </div>
                     <div class="contact-info-item">
@@ -190,7 +190,7 @@
                     </div>
                 </div>
                 <div class="contact-form fade-in">
-                    <form action="#" method="POST">
+                    <form id="adv-contact-form" action="#" method="POST">
                         <div class="form-group">
                             <label for="name">Nome Completo</label>
                             <input type="text" id="name" class="form-control" placeholder="Seu nome" required="">
@@ -209,6 +209,7 @@
                                 required=""></textarea>
                         </div>
                         <button type="submit" class="btn btn-primary" style="width: 100%;">Enviar Mensagem</button>
+                        <p id="contact-feedback" class="privacy-notice" aria-live="polite"></p>
                         <p class="privacy-notice">
                             Ao enviar, você concorda com nossa <a href="politica-privacidade.html"
                                 style="text-decoration: underline;">Política de Privacidade</a>.

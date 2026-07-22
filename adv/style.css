@@ -383,6 +383,14 @@ header {
     box-shadow: var(--shadow);
 }
 
+.contact-link {
+    color: inherit;
+}
+
+.contact-link:hover {
+    color: var(--secondary-blue);
+}
+
 .form-group {
     margin-bottom: 20px;
 }
@@ -416,6 +424,12 @@ header {
     text-align: center;
 }
 
+#contact-feedback {
+    min-height: 18px;
+    color: var(--secondary-blue);
+    font-weight: 500;
+}
+
 /* Map */
 .map-section {
     line-height: 0;
@@ -423,6 +437,7 @@ header {
 
 .map-section iframe {
     width: 100%;
+    min-height: 420px;
 }
 
 /* Footer */
@@ -560,6 +575,14 @@ footer {
 }
 
 @media (max-width: 768px) {
+    .section-padding {
+        padding: 64px 0;
+    }
+
+    .navbar {
+        height: 72px;
+    }
+
     .hamburger {
         display: block;
     }
@@ -579,7 +602,7 @@ footer {
     .nav-menu {
         position: fixed;
         left: -100%;
-        top: 80px;
+        top: 72px;
         gap: 0;
         flex-direction: column;
         background-color: var(--white);
@@ -600,6 +623,24 @@ footer {
     
     .hero-title {
         font-size: 2.2rem;
+        line-height: 1.15;
+    }
+
+    .hero-subtitle {
+        font-size: 1rem;
+        margin-bottom: 28px;
+    }
+
+    .carousel-container {
+        padding: 34px 22px;
+    }
+
+    .contact-form {
+        padding: 26px 18px;
+    }
+
+    .map-section iframe {
+        min-height: 320px;
     }
     
     .cookie-content {
@@ -609,7 +650,64 @@ footer {
 }
 
 @media (max-width: 480px) {
+    .container {
+        padding: 0 16px;
+    }
+
+    .logo {
+        font-size: 1.35rem;
+    }
+
+    .hero {
+        min-height: auto;
+        padding-top: 110px;
+        padding-bottom: 54px;
+    }
+
     .footer-grid {
         grid-template-columns: 1fr;
+    }
+
+    .hero-title {
+        font-size: 1.85rem;
+    }
+
+    .section-title {
+        font-size: 1.9rem;
+    }
+
+    .service-card {
+        padding: 30px 22px;
+    }
+
+    .feature-item {
+        gap: 14px;
+    }
+
+    .testimonial-text {
+        font-size: 1.02rem;
+    }
+
+    .contact-info-item {
+        gap: 14px;
+        margin-bottom: 22px;
+    }
+
+    .contact-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 1rem;
+    }
+
+    .whatsapp-float {
+        width: 54px;
+        height: 54px;
+        right: 18px;
+        bottom: 18px;
+        font-size: 1.75rem;
+    }
+
+    .cookie-alert {
+        padding: 16px;
     }
 }

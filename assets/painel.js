@@ -126,7 +126,7 @@
       const height = Math.max(8, Math.round((rawValue / maxValue) * 100));
       document.getElementById(item.element).style.setProperty("--bar-height", `${height}%`);
       document.getElementById(item.value).textContent = item.key === "activePageMetric"
-        ? (state.activePage === "primary" ? "Site" : "Manutencao")
+        ? (state.activePage === "primary" ? "Site" : "ADV")
         : rawValue;
     });
 
