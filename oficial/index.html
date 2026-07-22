@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PGMEI - Programa Gerador de DAS</title>
+  <link rel="icon" type="image/svg+xml" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="%23f8fff2"/><stop offset="1" stop-color="%23dcefc3"/></linearGradient><linearGradient id="dot" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="%2373bf58"/><stop offset="1" stop-color="%2348953a"/></linearGradient></defs><rect x="4" y="4" width="56" height="56" rx="14" fill="url(%23bg)"/><circle cx="32" cy="32" r="15" fill="url(%23dot)"/><rect x="25" y="25" width="14" height="14" rx="4" fill="%23ffffff"/></svg>'>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+  <link href="/assets/pgmei.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+</head>
+<body class="authenticated-view">
+  <div class="container-fluid">
+    <header class="row">
+      <h3><span class="label label-success"><span class="brand-mark" aria-hidden="true"></span> PGMEI</span></h3>
+      <h4 class="text-success">Programa Gerador de DAS do Microempreendedor Individual</h4>
+    </header>
+
+    <nav class="navbar-pgmei" style="display:block;">
+      <ul>
+        <li><a href="javascript:void(0);" id="nav-inicio"><span class="glyphicon glyphicon-home"></span> Início</a></li>
+        <li><a href="javascript:void(0);" id="nav-emitir" class="active"><span class="glyphicon glyphicon-file"></span> Emitir Guia de Pagamento (DAS)</a></li>
+        <li><a href="javascript:void(0);" id="nav-consulta"><span class="glyphicon glyphicon-lock"></span> Consulta Extrato/Pendências <span class="caret"></span></a></li>
+        <li style="margin-left:auto;"><a href="javascript:void(0);" id="nav-ajuda"><span class="glyphicon glyphicon-question-sign"></span> Ajuda</a></li>
+        <li><a href="javascript:void(0);" id="nav-sair"><span class="glyphicon glyphicon-log-out"></span> Sair</a></li>
+      </ul>
+    </nav>
+
+    <div class="bar-cnpj-nome" style="display:flex;">
+      <span><strong>CNPJ:</strong> <span class="lbl-cnpj">00.000.000/0000-00</span></span>
+      <span><strong>Nome:</strong> <span class="lbl-nome">Razão Social do MEI</span></span>
+    </div>
+
+    <section class="row">
+      <div class="well col-md-12" role="main">
+        <div class="container">
+          <div id="page-emitir" class="step-container">
+            <div style="display:flex;flex-direction:column;align-items:center;padding:30px 0;">
+              <label for="ano-calendario" style="margin:0 0 8px 0;font-weight:bold;font-size:14px;">Informe o Ano-Calendário:</label>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <select id="ano-calendario" class="form-control" style="max-width:180px;display:inline-block;">
+                  <option value="2024">2024</option>
+                  <option value="2025" selected>2025</option>
+                  <option value="2026">2026</option>
+                </select>
+                <button id="btn-ano-ok" class="btn btn-success" style="padding:6px 20px;font-weight:bold;">OK</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="page-das" class="step-container" style="display:none;">
+            <div class="alert-pgmei alert-pgmei-warning" id="alert-pendencias">
+              <h4><strong><span class="glyphicon glyphicon-exclamation-sign"></span> Apurações Pendentes Detectadas</strong></h4>
+              <p>Selecione as guias desejadas abaixo para efetuar a geração e o pagamento.</p>
+            </div>
+            <div class="panel panel-default">
+              <div class="panel-heading" style="display:flex;justify-content:space-between;align-items:center;">
+                <h4 class="panel-title">Situação de Apurações do DAS</h4>
+                <span class="label label-danger" id="lbl-resumo-pendente">Apurando pendências...</span>
+              </div>
+              <div class="panel-body" style="padding:15px;">
+                <div style="overflow-x:auto;">
+                  <table class="table-das">
+                    <thead>
+                      <tr>
+                        <th style="width:40px;"><input type="checkbox" id="chk-todos"></th>
+                        <th>Período de Apuração</th>
+                        <th>Apurado</th>
+                        <th>Benefício INSS</th>
+                        <th>Situação</th>
+                        <th>Principal</th>
+                        <th>Multa</th>
+                        <th>Juros</th>
+                        <th>Total</th>
+                        <th>Data de Vencimento</th>
+                        <th>Data de Acolhimento</th>
+                      </tr>
+                    </thead>
+                    <tbody id="das-table-body"></tbody>
+                  </table>
+                </div>
+                <hr>
+                <div class="row">
+                  <div class="col-md-5"></div>
+                  <div class="col-md-7 text-right">
+                    <div style="font-size:15px;margin-bottom:10px;font-weight:bold;color:#3c763d;" id="lbl-total-pagar">Total Selecionado: R$ 0,00</div>
+                    <button id="btn-continuar-das" class="btn btn-success btn-lg" disabled><span class="glyphicon glyphicon-credit-card"></span> CONTINUAR DAS</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="page-pagamento" class="step-container" style="display:none;">
+            <div style="max-width:850px;margin:20px auto;background:#fff;border:1px solid #ccc;padding:0;font-family:Arial,sans-serif;">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 30px;border-bottom:3px solid #1a3a5c;">
+                <div class="doc-brand">
+                  <div class="doc-brand-icon" aria-hidden="true"></div>
+                  <div style="font-size:16px;font-weight:bold;color:#2d5a27;line-height:1.2;">SIMPLES<br><span style="font-size:11px;font-weight:normal;letter-spacing:3px;">NACIONAL</span></div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="font-size:22px;font-weight:bold;color:#1a3a5c;line-height:1.2;">Documento de Arrecadação</div>
+                  <div style="font-size:22px;font-weight:bold;color:#1a3a5c;">do Simples Nacional</div>
+                </div>
+              </div>
+
+              <div style="padding:15px 30px 5px 30px;">
+                <div style="display:flex;gap:10px;margin-bottom:8px;">
+                  <div style="flex:1;border:1px solid #999;padding:4px 8px;">
+                    <div style="font-size:9px;color:#666;text-transform:uppercase;">CNPJ</div>
+                    <div style="font-size:13px;font-weight:bold;" id="doc-cnpj">00000000000000</div>
+                  </div>
+                  <div style="flex:2;border:1px solid #999;padding:4px 8px;">
+                    <div style="font-size:9px;color:#666;text-transform:uppercase;">Razão Social</div>
+                    <div style="font-size:13px;font-weight:bold;" id="doc-razao">RAZÃO SOCIAL</div>
+                  </div>
+                  <div style="flex:1;border:1px solid #999;padding:4px 8px;background:#f5f5dc;">
+                    <div style="font-size:9px;color:#666;text-transform:uppercase;">Período de Apuração</div>
+                    <div style="font-size:13px;font-weight:bold;" id="doc-periodo">2025</div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:10px;margin-bottom:12px;">
+                  <div style="flex:1;border:1px solid #999;padding:4px 8px;">
+                    <div style="font-size:9px;color:#666;text-transform:uppercase;">Data de Vencimento</div>
+                    <div style="font-size:13px;font-weight:bold;" id="doc-vencimento">23/12/2025</div>
+                  </div>
+                  <div style="flex:2;border:1px solid #999;padding:4px 8px;">
+                    <div style="font-size:9px;color:#666;text-transform:uppercase;">Número do Documento</div>
+                    <div style="font-size:13px;font-weight:bold;" id="doc-numero">07.20.24714.5832617-3</div>
+                  </div>
+                  <div style="flex:1;border:1px solid #999;padding:4px 8px;background:#f5f5dc;">
+                    <div style="font-size:13px;font-weight:bold;" id="doc-data-acolh">23/12/2025</div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="padding:0 30px 15px 30px;">
+                <div style="display:inline-block;background:#c5e1a5;padding:8px 30px;border-radius:5px;border:1px solid #8bc34a;">
+                  <span style="font-size:22px;font-weight:bold;color:#333;" id="doc-total-valor">R$ 239,33</span>
+                </div>
+              </div>
+
+              <div style="padding:0 30px 15px 30px;">
+                <div style="border:1px solid #ddd;padding:10px 15px;font-size:11px;color:#555;background:#fafafa;">
+                  <strong>OBSERVAÇÕES:</strong><br>
+                  A inadimplência poderá resultar em multas, juros, exclusão do Simples Nacional, inscrição em dívida ativa e eventual execução fiscal contra a empresa e seus sócios.
+                </div>
+              </div>
+
+              <div style="padding:0 30px 15px 30px;">
+                <div style="background:#1a3a5c;color:#fff;padding:8px 15px;font-size:13px;font-weight:bold;text-transform:uppercase;">Composição do Documento de Arrecadação</div>
+                <div style="border:1px solid #1a3a5c;border-top:none;">
+                  <table style="width:100%;border-collapse:collapse;font-size:12px;">
+                    <thead>
+                      <tr style="background:#e8edf2;">
+                        <th style="padding:5px 8px;text-align:left;border-bottom:1px solid #ccc;font-size:11px;">CÓDIGO</th>
+                        <th style="padding:5px 8px;text-align:left;border-bottom:1px solid #ccc;font-size:11px;">DENOMINAÇÃO</th>
+                        <th style="padding:5px 8px;text-align:right;border-bottom:1px solid #ccc;font-size:11px;">PRINCIPAL</th>
+                        <th style="padding:5px 8px;text-align:right;border-bottom:1px solid #ccc;font-size:11px;">MULTA</th>
+                        <th style="padding:5px 8px;text-align:right;border-bottom:1px solid #ccc;font-size:11px;">JUROS</th>
+                        <th style="padding:5px 8px;text-align:right;border-bottom:1px solid #ccc;font-size:11px;">TOTAL</th>
+                      </tr>
+                    </thead>
+                    <tbody id="doc-composicao-body"></tbody>
+                    <tfoot>
+                      <tr style="background:#f5f5f5;">
+                        <td colspan="5" style="padding:5px 8px;text-align:right;font-weight:bold;font-size:12px;">Total</td>
+                        <td style="padding:5px 8px;text-align:right;font-weight:bold;font-size:14px;" id="doc-composicao-total">239,33</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </div>
+
+              <div style="padding:15px 30px 25px 30px;text-align:center;">
+                <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:15px;">
+                  <span style="color:#2d5a27;font-size:20px;">✦</span>
+                  <span style="font-size:18px;font-weight:bold;color:#333;">Pague usando o PIX</span>
+                </div>
+
+                <div class="pix-qr-placeholder" style="display:inline-block;margin-bottom:15px;">
+                  <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=placeholder" alt="QRCode Pix" style="width:180px;height:180px;">
+                </div>
+
+                <div style="max-width:500px;margin:0 auto 15px auto;">
+                  <input type="text" id="pix-key" readonly class="form-control" style="font-size:11px;text-align:center;background:#f9f9f9;color:#555;border:1px solid #ccc;" value="Gerando código Pix...">
+                </div>
+
+                <div style="max-width:300px;margin:0 auto;">
+                  <button id="btn-copiar-pix" class="btn btn-default btn-block" style="border:1px solid #ccc;font-size:13px;">
+                    <span class="glyphicon glyphicon-copy"></span> Copiar
+                  </button>
+                </div>
+
+                <div id="payment-status-box" class="payment-status-box" style="display:none;">
+                  <strong>Status:</strong> <span id="payment-status-text">Aguardando pagamento.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="row clearfix">
+      <div class="pull-left">
+        <p class="text-success"><strong>Versão: 3.17.0</strong></p>
+      </div>
+      <div class="pull-right"><div class="footer-brand">Simples Nacional</div></div>
+    </footer>
+  </div>
+
+  <script src="/assets/app-common.js"></script>
+  <script src="/assets/oficial.js"></script>
+</body>
+</html>
