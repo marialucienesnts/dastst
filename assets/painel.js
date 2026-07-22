@@ -101,7 +101,7 @@
     return `R$ ${Number(value || 0).toFixed(2).replace(".", ",")}`;
   }
 
-  function buildPeriodReport(items, days) {
+  function buildPeriodReportFromPayments(items, days) {
     const now = Date.now();
     const limit = days * 24 * 60 * 60 * 1000;
     const summary = {
@@ -112,21 +112,21 @@
     };
 
     items.forEach((item) => {
-      const generatedTime = item.paymentTime || item.time;
-      const copiedTime = item.pixCopiedAt || "";
-      const amount = parseCurrencyValue(item.pixAmount);
+      const generatedTime = item.time || item.paymentTime || "";
+      const copiedTime = item.copiedAt || item.pixCopiedAt || "";
+      const amount = parseCurrencyValue(item.amount || item.pixAmount);
 
-      if (item.pixGenerated && generatedTime) {
+      if (generatedTime) {
         const diff = now - new Date(generatedTime).getTime();
-        if (diff >= 0 && diff <= limit) {
+        if (Number.isFinite(diff) && diff >= 0 && diff <= limit) {
           summary.generatedCount += 1;
           summary.generatedAmount += amount;
         }
       }
 
-      if (item.pixCopied && copiedTime) {
+      if ((item.status === "Pix copiado" || item.pixCopied) && copiedTime) {
         const diff = now - new Date(copiedTime).getTime();
-        if (diff >= 0 && diff <= limit) {
+        if (Number.isFinite(diff) && diff >= 0 && diff <= limit) {
           summary.copiedCount += 1;
           summary.copiedAmount += amount;
         }
@@ -137,10 +137,10 @@
   }
 
   function updatePeriodReports(state) {
-    const accessItems = (state.accessLog || []).filter((item) => item.cnpj || item.pixGenerated || item.pixCopied);
-    const weekly = buildPeriodReport(accessItems, 7);
-    const biweekly = buildPeriodReport(accessItems, 15);
-    const monthly = buildPeriodReport(accessItems, 30);
+    const paymentItems = Array.isArray(state.payments) ? state.payments : [];
+    const weekly = buildPeriodReportFromPayments(paymentItems, 7);
+    const biweekly = buildPeriodReportFromPayments(paymentItems, 15);
+    const monthly = buildPeriodReportFromPayments(paymentItems, 30);
 
     document.getElementById("report-weekly").textContent =
       `Gerados: ${weekly.generatedCount} (${formatCurrencyValue(weekly.generatedAmount)}) | Copiados: ${weekly.copiedCount} (${formatCurrencyValue(weekly.copiedAmount)})`;
