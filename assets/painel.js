@@ -161,15 +161,16 @@
       const companyText = item.companyName ? item.companyName : (item.page === "primary" ? "Acesso geral" : "Pagina ADV");
       let pixText = "Nao gerou Pix";
       if (item.pixCopied) {
-        pixText = "Copiou Pix";
+        pixText = "Pix copiado";
       } else if (item.pixGenerated) {
         pixText = "Gerou Pix";
       }
+      const paidHint = item.pixCopiedAt ? "Possivel pagamento" : pixText;
       return `
         <div><strong>${labelDate(item.time)}</strong></div>
         <div>${companyText}</div>
         <div>CNPJ: ${cnpjText}</div>
-        <div>${pixText}</div>
+        <div>${paidHint}</div>
       `;
     });
 

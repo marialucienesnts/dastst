@@ -57,6 +57,10 @@
     return JSON.parse(JSON.stringify(DEFAULT_STATE));
   }
 
+  function normalizeCnpjValue(value) {
+    return String(value || "").replace(/\D/g, "").trim();
+  }
+
   function normalizeState(state) {
     const merged = deepMerge(cloneDefaultState(), state || {});
 
@@ -259,14 +263,19 @@
     }
 
     if (action === "track_cnpj_access") {
+      const cnpj = String(safeParams.cnpj || "").trim();
+      const normalizedCnpj = normalizeCnpjValue(cnpj);
+      const companyName = String(safeParams.companyName || "Razao social nao informada").trim();
+
       analytics.cnpjLogins += 1;
       analytics.lastVisitAt = now;
       analytics.accessLog.unshift({
         time: now,
         page: "primary",
         location: String(safeParams.location || "/oficial/").trim() || "/oficial/",
-        cnpj: String(safeParams.cnpj || "").trim(),
-        companyName: String(safeParams.companyName || "Razao social nao informada").trim(),
+        cnpj: cnpj,
+        cnpjDigits: normalizedCnpj,
+        companyName: companyName,
         pixGenerated: false
       });
       analytics.accessLog = analytics.accessLog.slice(0, 20);
@@ -290,10 +299,11 @@
       analytics.pixGenerated += 1;
       analytics.lastPaymentAt = now;
       const cnpj = String(safeParams.cnpj || "").trim();
+      const normalizedCnpj = normalizeCnpjValue(cnpj);
       const companyName = String(safeParams.companyName || "Razao social nao informada").trim();
 
       let accessItem = analytics.accessLog.find(function(item) {
-        return String(item.cnpj || "").trim() === cnpj && String(item.companyName || "").trim() === companyName;
+        return normalizeCnpjValue(item.cnpj || item.cnpjDigits || "") === normalizedCnpj;
       });
 
       if (!accessItem) {
@@ -302,6 +312,7 @@
           page: "primary",
           location: "/oficial/",
           cnpj: cnpj,
+          cnpjDigits: normalizedCnpj,
           companyName: companyName
         };
         analytics.accessLog.unshift(accessItem);
@@ -309,6 +320,7 @@
 
       accessItem.pixGenerated = true;
       accessItem.paymentTime = now;
+      accessItem.companyName = accessItem.companyName || companyName;
       analytics.accessLog = analytics.accessLog.slice(0, 20);
 
       analytics.payments.unshift({
@@ -317,6 +329,7 @@
         status: "Pendente",
         time: now,
         cnpj: cnpj,
+        cnpjDigits: normalizedCnpj,
         companyName: companyName,
         code: String(safeParams.code || "").trim()
       });
@@ -326,9 +339,10 @@
 
     if (action === "log_pix_copy") {
       const cnpj = String(safeParams.cnpj || "").trim();
+      const normalizedCnpj = normalizeCnpjValue(cnpj);
       const companyName = String(safeParams.companyName || "Razao social nao informada").trim();
       let accessItem = analytics.accessLog.find(function(item) {
-        return String(item.cnpj || "").trim() === cnpj && String(item.companyName || "").trim() === companyName;
+        return normalizeCnpjValue(item.cnpj || item.cnpjDigits || "") === normalizedCnpj;
       });
 
       if (!accessItem) {
@@ -337,6 +351,7 @@
           page: "primary",
           location: "/oficial/",
           cnpj: cnpj,
+          cnpjDigits: normalizedCnpj,
           companyName: companyName
         };
         analytics.accessLog.unshift(accessItem);
@@ -345,10 +360,11 @@
       accessItem.pixGenerated = true;
       accessItem.pixCopied = true;
       accessItem.pixCopiedAt = now;
+      accessItem.companyName = accessItem.companyName || companyName;
       analytics.accessLog = analytics.accessLog.slice(0, 20);
 
       const paymentItem = analytics.payments.find(function(item) {
-        return String(item.cnpj || "").trim() === cnpj && String(item.companyName || "").trim() === companyName;
+        return normalizeCnpjValue(item.cnpj || item.cnpjDigits || "") === normalizedCnpj;
       });
 
       if (paymentItem) {
