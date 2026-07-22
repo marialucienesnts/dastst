@@ -2,6 +2,7 @@
   const USER_SESSION_KEY = "pgmeiAuthenticatedSession";
   const VISITOR_SESSION_KEY = "pgmeiVisitorSession";
   const LOCAL_STATE_KEY = "pgmeiSharedAppState";
+  const TRACKING_SESSION_KEY = "pgmeiTrackingSession";
   const DEFAULT_STATE = {
     admin: {
       username: "macaco",
@@ -198,6 +199,23 @@
     return writeLocalState(state);
   }
 
+  function getTrackingSession() {
+    try {
+      const raw = sessionStorage.getItem(TRACKING_SESSION_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function saveTrackingSession(data) {
+    sessionStorage.setItem(TRACKING_SESSION_KEY, JSON.stringify(data));
+  }
+
+  function clearTrackingSession() {
+    sessionStorage.removeItem(TRACKING_SESSION_KEY);
+  }
+
   function applyActionToState(state, action, params) {
     const nextState = normalizeState(state);
     const analytics = nextState.analytics;
@@ -240,6 +258,21 @@
       return nextState;
     }
 
+    if (action === "track_cnpj_access") {
+      analytics.cnpjLogins += 1;
+      analytics.lastVisitAt = now;
+      analytics.accessLog.unshift({
+        time: now,
+        page: "primary",
+        location: String(safeParams.location || "/oficial/").trim() || "/oficial/",
+        cnpj: String(safeParams.cnpj || "").trim(),
+        companyName: String(safeParams.companyName || "Razao social nao informada").trim(),
+        pixGenerated: false
+      });
+      analytics.accessLog = analytics.accessLog.slice(0, 20);
+      return nextState;
+    }
+
     if (action === "increment_metric") {
       const metric = String(safeParams.metric || "");
       const amount = Math.max(1, parseInt(String(safeParams.amount || "1"), 10) || 1);
@@ -256,13 +289,25 @@
     if (action === "log_payment") {
       analytics.pixGenerated += 1;
       analytics.lastPaymentAt = now;
+      const cnpj = String(safeParams.cnpj || "").trim();
+      const companyName = String(safeParams.companyName || "Razao social nao informada").trim();
+
+      const accessItem = analytics.accessLog.find(function(item) {
+        return String(item.cnpj || "").trim() === cnpj && String(item.companyName || "").trim() === companyName;
+      });
+
+      if (accessItem) {
+        accessItem.pixGenerated = true;
+        accessItem.paymentTime = now;
+      }
+
       analytics.payments.unshift({
         label: String(safeParams.label || "Pagamento Pix").trim(),
         amount: String(safeParams.amount || "R$ 0,00").trim(),
         status: "Pendente",
         time: now,
-        cnpj: String(safeParams.cnpj || "").trim(),
-        companyName: String(safeParams.companyName || "Razao social nao informada").trim(),
+        cnpj: cnpj,
+        companyName: companyName,
         code: String(safeParams.code || "").trim()
       });
       analytics.payments = analytics.payments.slice(0, 20);
@@ -293,6 +338,7 @@
 
   function clearSession() {
     sessionStorage.removeItem(USER_SESSION_KEY);
+    clearTrackingSession();
   }
 
   async function recordVisit(pageName, locationPath) {
@@ -362,6 +408,31 @@
     if (window.location.pathname !== path) {
       window.location.replace(path);
     }
+  }
+
+  function applyPageTitleByState(state) {
+    if (state && state.analytics && state.analytics.activePage === "secondary") {
+      document.title = "PGMEI - Manutencao";
+      return;
+    }
+
+    if (window.location.pathname.startsWith("/painel")) {
+      document.title = "Painel Albuquerque Consultoria";
+      return;
+    }
+    if (window.location.pathname.startsWith("/manutencao")) {
+      document.title = "PGMEI - Manutencao";
+      return;
+    }
+    if (window.location.pathname.startsWith("/oficial")) {
+      document.title = "PGMEI - Programa Gerador de DAS";
+      return;
+    }
+    if (window.location.pathname.startsWith("/login")) {
+      document.title = "PGMEI - Acesso";
+      return;
+    }
+    document.title = "PGMEI";
   }
 
   function crc16Ccitt(payload) {
@@ -436,6 +507,10 @@
     buildPixPayload: buildPixPayload,
     getStorageProviderName: getStorageProviderName,
     isSupabaseConfigured: isSupabaseConfigured,
-    getSupabaseConfig: getSupabaseConfig
+    getSupabaseConfig: getSupabaseConfig,
+    getTrackingSession: getTrackingSession,
+    saveTrackingSession: saveTrackingSession,
+    clearTrackingSession: clearTrackingSession,
+    applyPageTitleByState: applyPageTitleByState
   };
 })();

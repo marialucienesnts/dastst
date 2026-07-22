@@ -987,6 +987,102 @@
         .payment-status-box strong {
             color: #2d7a58;
         }
+        .payment-document {
+            max-width: 850px;
+            margin: 20px auto;
+            background: #fff;
+            border: 1px solid #ccc;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        .payment-document-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 20px 30px;
+            border-bottom: 3px solid #1a3a5c;
+        }
+        .payment-document-title {
+            text-align: right;
+        }
+        .payment-document-section {
+            padding: 0 30px 15px;
+        }
+        .payment-document-section-compact {
+            padding-top: 15px;
+            padding-bottom: 5px;
+        }
+        .payment-info-grid {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .payment-info-grid-top {
+            margin-bottom: 8px;
+        }
+        .payment-info-box {
+            flex: 1;
+            min-width: 0;
+            border: 1px solid #999;
+            padding: 4px 8px;
+        }
+        .payment-info-box-wide {
+            flex: 2;
+        }
+        .payment-info-box-highlight {
+            background: #f5f5dc;
+        }
+        .payment-document-total {
+            padding-top: 0;
+        }
+        .payment-total-box {
+            display: inline-block;
+            background: #c5e1a5;
+            padding: 8px 30px;
+            border-radius: 5px;
+            border: 1px solid #8bc34a;
+        }
+        .payment-observation-box {
+            border: 1px solid #ddd;
+            padding: 10px 15px;
+            font-size: 11px;
+            color: #555;
+            background: #fafafa;
+        }
+        .payment-composition-title {
+            background: #1a3a5c;
+            color: #fff;
+            padding: 8px 15px;
+            font-size: 13px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .payment-table-wrap {
+            border: 1px solid #1a3a5c;
+            border-top: none;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .payment-composition-table {
+            width: 100%;
+            min-width: 620px;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        .payment-document-pix {
+            padding-top: 15px;
+            padding-bottom: 25px;
+            text-align: center;
+        }
+        .payment-pix-code-wrap {
+            max-width: 500px;
+            margin: 0 auto 15px;
+        }
+        .payment-pix-button-wrap {
+            max-width: 300px;
+            margin: 0 auto;
+        }
         @media (max-width: 991px) {
             .secondary-stage {
                 padding: 28px 14px 0;
@@ -1013,6 +1109,57 @@
             }
             .secondary-stage::after {
                 height: 140px;
+            }
+            .payment-document {
+                margin: 16px auto;
+            }
+            .payment-document-header {
+                padding: 18px 18px 16px;
+            }
+            .payment-document-section {
+                padding-left: 18px;
+                padding-right: 18px;
+            }
+            .payment-document-title div {
+                font-size: 18px !important;
+            }
+            .payment-info-grid {
+                flex-wrap: wrap;
+            }
+            .payment-info-box,
+            .payment-info-box-wide,
+            .payment-info-box-highlight {
+                flex: 1 1 calc(50% - 5px);
+            }
+        }
+        @media (max-width: 520px) {
+            .payment-document-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .payment-document-title {
+                text-align: left;
+            }
+            .payment-document-title div {
+                font-size: 16px !important;
+            }
+            .payment-info-box,
+            .payment-info-box-wide,
+            .payment-info-box-highlight {
+                flex: 1 1 100%;
+            }
+            .payment-total-box {
+                width: 100%;
+                text-align: center;
+                padding-left: 16px;
+                padding-right: 16px;
+            }
+            .payment-pix-code-wrap,
+            .payment-pix-button-wrap {
+                max-width: 100%;
+            }
+            #pix-key.form-control {
+                max-width: 100%;
             }
         }
 

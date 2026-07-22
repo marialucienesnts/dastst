@@ -11,9 +11,11 @@
     try {
       setStatus("Verificando o ambiente...");
       const state = await window.PGMEI.fetchState();
+      window.PGMEI.applyPageTitleByState(state);
       const session = window.PGMEI.getSession();
 
       if (state.analytics.activePage === "secondary") {
+        document.title = "PGMEI - Manutencao";
         window.PGMEI.redirect("/manutencao/");
         return;
       }
@@ -26,6 +28,7 @@
       window.PGMEI.redirect("/login/");
     } catch (error) {
       console.warn("Falha ao consultar estado global:", error.message);
+      window.PGMEI.applyPageTitleByState();
       if (window.PGMEI.getSession()) {
         window.PGMEI.redirect("/oficial/");
         return;

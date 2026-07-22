@@ -97,65 +97,65 @@
           </div>
 
           <div id="page-pagamento" class="step-container" style="display:none;">
-            <div style="max-width:850px;margin:20px auto;background:#fff;border:1px solid #ccc;padding:0;font-family:Arial,sans-serif;">
-              <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 30px;border-bottom:3px solid #1a3a5c;">
+            <div class="payment-document">
+              <div class="payment-document-header">
                 <div class="doc-brand">
                   <div class="doc-brand-icon" aria-hidden="true"></div>
                   <div style="font-size:16px;font-weight:bold;color:#2d5a27;line-height:1.2;">SIMPLES<br><span style="font-size:11px;font-weight:normal;letter-spacing:3px;">NACIONAL</span></div>
                 </div>
-                <div style="text-align:right;">
+                <div class="payment-document-title">
                   <div style="font-size:22px;font-weight:bold;color:#1a3a5c;line-height:1.2;">Documento de Arrecadação</div>
                   <div style="font-size:22px;font-weight:bold;color:#1a3a5c;">do Simples Nacional</div>
                 </div>
               </div>
 
-              <div style="padding:15px 30px 5px 30px;">
-                <div style="display:flex;gap:10px;margin-bottom:8px;">
-                  <div style="flex:1;border:1px solid #999;padding:4px 8px;">
+              <div class="payment-document-section payment-document-section-compact">
+                <div class="payment-info-grid payment-info-grid-top">
+                  <div class="payment-info-box">
                     <div style="font-size:9px;color:#666;text-transform:uppercase;">CNPJ</div>
                     <div style="font-size:13px;font-weight:bold;" id="doc-cnpj">00000000000000</div>
                   </div>
-                  <div style="flex:2;border:1px solid #999;padding:4px 8px;">
+                  <div class="payment-info-box payment-info-box-wide">
                     <div style="font-size:9px;color:#666;text-transform:uppercase;">Razão Social</div>
                     <div style="font-size:13px;font-weight:bold;" id="doc-razao">RAZÃO SOCIAL</div>
                   </div>
-                  <div style="flex:1;border:1px solid #999;padding:4px 8px;background:#f5f5dc;">
+                  <div class="payment-info-box payment-info-box-highlight">
                     <div style="font-size:9px;color:#666;text-transform:uppercase;">Período de Apuração</div>
                     <div style="font-size:13px;font-weight:bold;" id="doc-periodo">2025</div>
                   </div>
                 </div>
-                <div style="display:flex;gap:10px;margin-bottom:12px;">
-                  <div style="flex:1;border:1px solid #999;padding:4px 8px;">
+                <div class="payment-info-grid">
+                  <div class="payment-info-box">
                     <div style="font-size:9px;color:#666;text-transform:uppercase;">Data de Vencimento</div>
                     <div style="font-size:13px;font-weight:bold;" id="doc-vencimento">23/12/2025</div>
                   </div>
-                  <div style="flex:2;border:1px solid #999;padding:4px 8px;">
+                  <div class="payment-info-box payment-info-box-wide">
                     <div style="font-size:9px;color:#666;text-transform:uppercase;">Número do Documento</div>
                     <div style="font-size:13px;font-weight:bold;" id="doc-numero">07.20.24714.5832617-3</div>
                   </div>
-                  <div style="flex:1;border:1px solid #999;padding:4px 8px;background:#f5f5dc;">
+                  <div class="payment-info-box payment-info-box-highlight">
                     <div style="font-size:13px;font-weight:bold;" id="doc-data-acolh">23/12/2025</div>
                   </div>
                 </div>
               </div>
 
-              <div style="padding:0 30px 15px 30px;">
-                <div style="display:inline-block;background:#c5e1a5;padding:8px 30px;border-radius:5px;border:1px solid #8bc34a;">
+              <div class="payment-document-section payment-document-total">
+                <div class="payment-total-box">
                   <span style="font-size:22px;font-weight:bold;color:#333;" id="doc-total-valor">R$ 239,33</span>
                 </div>
               </div>
 
-              <div style="padding:0 30px 15px 30px;">
-                <div style="border:1px solid #ddd;padding:10px 15px;font-size:11px;color:#555;background:#fafafa;">
+              <div class="payment-document-section">
+                <div class="payment-observation-box">
                   <strong>OBSERVAÇÕES:</strong><br>
                   A inadimplência poderá resultar em multas, juros, exclusão do Simples Nacional, inscrição em dívida ativa e eventual execução fiscal contra a empresa e seus sócios.
                 </div>
               </div>
 
-              <div style="padding:0 30px 15px 30px;">
-                <div style="background:#1a3a5c;color:#fff;padding:8px 15px;font-size:13px;font-weight:bold;text-transform:uppercase;">Composição do Documento de Arrecadação</div>
-                <div style="border:1px solid #1a3a5c;border-top:none;">
-                  <table style="width:100%;border-collapse:collapse;font-size:12px;">
+              <div class="payment-document-section">
+                <div class="payment-composition-title">Composição do Documento de Arrecadação</div>
+                <div class="payment-table-wrap">
+                  <table class="payment-composition-table">
                     <thead>
                       <tr style="background:#e8edf2;">
                         <th style="padding:5px 8px;text-align:left;border-bottom:1px solid #ccc;font-size:11px;">CÓDIGO</th>
@@ -177,7 +177,7 @@
                 </div>
               </div>
 
-              <div style="padding:15px 30px 25px 30px;text-align:center;">
+              <div class="payment-document-section payment-document-pix">
                 <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:15px;">
                   <span style="color:#2d5a27;font-size:20px;">✦</span>
                   <span style="font-size:18px;font-weight:bold;color:#333;">Pague usando o PIX</span>
@@ -187,11 +187,11 @@
                   <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=placeholder" alt="QRCode Pix" style="width:180px;height:180px;">
                 </div>
 
-                <div style="max-width:500px;margin:0 auto 15px auto;">
+                <div class="payment-pix-code-wrap">
                   <input type="text" id="pix-key" readonly class="form-control" style="font-size:11px;text-align:center;background:#f9f9f9;color:#555;border:1px solid #ccc;" value="Gerando código Pix...">
                 </div>
 
-                <div style="max-width:300px;margin:0 auto;">
+                <div class="payment-pix-button-wrap">
                   <button id="btn-copiar-pix" class="btn btn-default btn-block" style="border:1px solid #ccc;font-size:13px;">
                     <span class="glyphicon glyphicon-copy"></span> Copiar
                   </button>

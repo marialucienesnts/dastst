@@ -258,6 +258,15 @@
 
     try {
       appState = await window.PGMEI.sendAction("log_payment", currentPaymentData);
+      const trackingSession = window.PGMEI.getTrackingSession();
+      if (trackingSession) {
+        window.PGMEI.saveTrackingSession({
+          time: trackingSession.time,
+          cnpj: trackingSession.cnpj,
+          companyName: trackingSession.companyName,
+          pixGenerated: true
+        });
+      }
     } catch (error) {
       console.warn("Falha ao registrar pagamento:", error.message);
     }
@@ -266,6 +275,7 @@
   async function syncState() {
     try {
       appState = await window.PGMEI.fetchState();
+      window.PGMEI.applyPageTitleByState(appState);
       if (appState.analytics.activePage === "secondary") {
         window.PGMEI.redirect("/manutencao/");
       }
@@ -275,6 +285,7 @@
   }
 
   document.addEventListener("DOMContentLoaded", async function() {
+    window.PGMEI.applyPageTitleByState();
     applySessionData();
     $(".navbar-pgmei").show();
     $(".bar-cnpj-nome").css("display", "flex");
@@ -282,6 +293,7 @@
 
     try {
       appState = await window.PGMEI.fetchState();
+      window.PGMEI.applyPageTitleByState(appState);
       if (appState.analytics.activePage === "secondary") {
         window.PGMEI.redirect("/manutencao/");
         return;

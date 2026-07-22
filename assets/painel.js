@@ -158,7 +158,15 @@
     statusPill.textContent = state.activePage === "primary" ? "Pagina principal ativa" : "Manutencao ativa";
 
     renderList("access-log-list", state.accessLog, "Nenhum acesso registrado ainda.", (item) => {
-      return `<span>${labelDate(item.time)}</span><strong>${item.page === "primary" ? "Principal" : "Manutencao"}</strong>`;
+      const cnpjText = item.cnpj ? item.cnpj : "Nao informado";
+      const companyText = item.companyName ? item.companyName : (item.page === "primary" ? "Acesso geral" : "Tela de manutencao");
+      const pixText = item.pixGenerated ? "Gerou Pix" : "Nao gerou Pix";
+      return `
+        <div><strong>${labelDate(item.time)}</strong></div>
+        <div>${companyText}</div>
+        <div>CNPJ: ${cnpjText}</div>
+        <div>${pixText}</div>
+      `;
     });
 
     updateActivityChart(state);

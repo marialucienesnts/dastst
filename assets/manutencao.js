@@ -2,6 +2,7 @@
   async function syncMaintenance() {
     try {
       const state = await window.PGMEI.fetchState();
+      window.PGMEI.applyPageTitleByState(state);
       document.getElementById("secondary-title-label").textContent = state.analytics.secondaryTitle;
       document.getElementById("secondary-message-label").textContent = state.analytics.secondaryMessage;
 
@@ -18,6 +19,7 @@
   }
 
   document.addEventListener("DOMContentLoaded", async function() {
+    document.title = "PGMEI - Manutencao";
     document.getElementById("secondary-site").classList.add("active");
     try {
       await syncMaintenance();
