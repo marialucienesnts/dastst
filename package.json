@@ -1,0 +1,12 @@
+{
+  "name": "albuquerque-consultoria-mei-das",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Site principal com painel administrativo e modo manutencao pronto para Vercel.",
+  "scripts": {
+    "dev": "node local-server.js"
+  },
+  "dependencies": {
+    "@vercel/blob": "^1.1.1"
+  }
+}

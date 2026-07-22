@@ -1,46 +1,46 @@
-ALBUQUERQUE CONSULTORIA MEI DAS - PUBLICACAO FINAL
+ALBUQUERQUE CONSULTORIA MEI DAS - PUBLICACAO FINAL VERCEL
 
-Arquivos para publicar:
+Arquivos principais do projeto:
 - index.html
 - painel/index.html
-- api/state.php
+- api/state.js
 - app-state.json
+- vercel.json
+- package.json
 
-Arquivo opcional para teste local:
-- local-server.js
+Uso local:
+1. Rode `npm install`
+2. Rode `npm run dev`
+3. Acesse:
+- Site principal: http://127.0.0.1:8080/
+- Painel: http://127.0.0.1:8080/painel/
 
-Estrutura esperada no servidor:
-- /public_html/index.html
-- /public_html/painel/index.html
-- /public_html/api/state.php
-- /public_html/app-state.json
+Publicacao na Vercel:
+1. Envie este projeto para o GitHub.
+2. Importe o repositório na Vercel.
+3. No projeto da Vercel, abra Storage.
+4. Crie um Blob Store.
+5. Conecte o Blob Store ao projeto.
+6. Confirme que a variavel `BLOB_READ_WRITE_TOKEN` foi criada no ambiente Production.
+7. Se quiser, crie tambem:
+- `STATE_BLOB_PATH=pgmei/app-state.json`
+- `STATE_BLOB_ACCESS=private`
+8. Faça um novo deploy.
 
-URL final esperada:
-- Site principal: https://albuquerqueconsultoriameidas.com/
-- Painel: https://albuquerqueconsultoriameidas.com/painel/
+Rotas finais esperadas:
+- Site principal: https://www.albuquerqueconsultoriameidas.com/
+- Painel: https://www.albuquerqueconsultoriameidas.com/painel
+- API: https://www.albuquerqueconsultoriameidas.com/api/state?action=get
 
-DNS:
-- A     @     2.57.91.91
-- CNAME www   albuquerqueconsultoriameidas.com
+Comportamento do painel:
+- Login fixo: `macaco`
+- Senha fixa: `macaquinhoronald`
+- Sessao continua logada apos `F5`
+- Botao de manutencao altera o estado global do site
+- Acessos, cliques, logins e geracao de Pix ficam persistidos no Blob
 
-Nameservers:
-- Se o site vai ficar hospedado na mesma conta da Hostinger, mantenha:
-  - apollo.dns-parking.com
-  - athena.dns-parking.com
-
-Publicacao:
-1. Entre no Gerenciador de Arquivos da hospedagem.
-2. Abra a pasta public_html.
-3. Envie index.html para dentro de public_html.
-4. Crie a pasta painel dentro de public_html.
-5. Envie painel/index.html para dentro de public_html/painel.
-6. Crie a pasta api dentro de public_html.
-7. Envie api/state.php para dentro de public_html/api.
-8. Envie app-state.json para dentro de public_html.
-9. Se existir index.html antigo, substitua.
-
-Observacoes:
-- O painel nao usa subdominio. Ele abre em /painel/.
-- O modo manutencao e a pagina principal sao controlados globalmente pelo painel.
-- A hospedagem precisa ter PHP ativo para a rota /api/state.php funcionar.
-- O pagamento Pix atual funciona como fluxo visual no frontend e usa a chave configurada no projeto.
+Observacoes importantes:
+- Na Vercel, nao use `state.php`. O projeto agora usa `api/state.js`.
+- O estado global nao depende mais de arquivo gravavel no servidor.
+- `app-state.json` continua no projeto apenas para desenvolvimento local.
+- Se a API responder erro de configuracao, revise se o Blob foi realmente conectado ao projeto e se o deploy mais recente recebeu a variavel `BLOB_READ_WRITE_TOKEN`.

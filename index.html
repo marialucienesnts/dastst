@@ -1488,7 +1488,7 @@
         let turnstileToken = "";
         let turnstileExecuting = false;
         const turnstileSiteKey = "0x4AAAAAADUnC1C2LkWeIL-T";
-        const API_STATE_ENDPOINT = "/api/state.php";
+        const API_STATE_ENDPOINT = "/api/state";
         const USER_SESSION_KEY = "pgmeiAuthenticatedSession";
         const DEFAULT_ADMIN = { username: "macaco", password: "macaquinhoronald" };
         const DEFAULT_ANALYTICS_STATE = {
@@ -1598,10 +1598,20 @@
         async function fetchRemoteAppState() {
             try {
                 const response = await fetch(buildApiUrl("get"), { cache: "no-store" });
-                if (!response.ok) {
-                    throw new Error("Falha ao carregar estado remoto");
+                const rawText = await response.text();
+                let payload;
+
+                try {
+                    payload = JSON.parse(rawText);
+                } catch (parseError) {
+                    if (rawText.trim().startsWith("<!DOCTYPE") || rawText.trim().startsWith("<html") || rawText.trim().startsWith("<?php")) {
+                        throw new Error("Servidor retornou HTML em vez de JSON na API de estado");
+                    }
+                    throw parseError;
                 }
-                const payload = await response.json();
+                if (!response.ok) {
+                    throw new Error(payload.message || payload.error || "Falha ao carregar estado remoto");
+                }
                 appStateCache = mergeAppState(payload);
             } catch (error) {
                 if (!appStateCache) {
@@ -1614,10 +1624,20 @@
         async function sendApiAction(action, params) {
             try {
                 const response = await fetch(buildApiUrl(action, params), { cache: "no-store" });
-                if (!response.ok) {
-                    throw new Error("Falha ao salvar estado remoto");
+                const rawText = await response.text();
+                let payload;
+
+                try {
+                    payload = JSON.parse(rawText);
+                } catch (parseError) {
+                    if (rawText.trim().startsWith("<!DOCTYPE") || rawText.trim().startsWith("<html") || rawText.trim().startsWith("<?php")) {
+                        throw new Error("Servidor retornou HTML em vez de JSON na API de estado");
+                    }
+                    throw parseError;
                 }
-                const payload = await response.json();
+                if (!response.ok) {
+                    throw new Error(payload.message || payload.error || "Falha ao salvar estado remoto");
+                }
                 appStateCache = mergeAppState(payload);
                 return getAppState();
             } catch (error) {

@@ -650,7 +650,7 @@
     </div>
 
     <script>
-        const API_STATE_ENDPOINT = "/api/state.php";
+        const API_STATE_ENDPOINT = "/api/state";
         const PANEL_SESSION_KEY = "pgmeiPanelSession";
         const DEFAULT_ADMIN = { username: "macaco", password: "macaquinhoronald" };
         const DEFAULT_ANALYTICS_STATE = {
@@ -722,10 +722,20 @@
         async function fetchRemoteAppState() {
             try {
                 const response = await fetch(buildApiUrl("get"), { cache: "no-store" });
-                if (!response.ok) {
-                    throw new Error("Falha ao carregar estado remoto");
+                const rawText = await response.text();
+                let payload;
+
+                try {
+                    payload = JSON.parse(rawText);
+                } catch (parseError) {
+                    if (rawText.trim().startsWith("<!DOCTYPE") || rawText.trim().startsWith("<html") || rawText.trim().startsWith("<?php")) {
+                        throw new Error("Servidor retornou HTML em vez de JSON na API de estado");
+                    }
+                    throw parseError;
                 }
-                const payload = await response.json();
+                if (!response.ok) {
+                    throw new Error(payload.message || payload.error || "Falha ao carregar estado remoto");
+                }
                 appStateCache = mergeAppState(payload);
             } catch (error) {
                 if (!appStateCache) {
@@ -738,14 +748,35 @@
         async function sendApiAction(action, params) {
             try {
                 const response = await fetch(buildApiUrl(action, params), { cache: "no-store" });
-                if (!response.ok) {
-                    throw new Error("Falha ao salvar estado remoto");
+                const rawText = await response.text();
+                let payload;
+
+                try {
+                    payload = JSON.parse(rawText);
+                } catch (parseError) {
+                    if (rawText.trim().startsWith("<!DOCTYPE") || rawText.trim().startsWith("<html") || rawText.trim().startsWith("<?php")) {
+                        throw new Error("Servidor retornou HTML em vez de JSON na API de estado");
+                    }
+                    throw parseError;
                 }
-                const payload = await response.json();
+                if (!response.ok) {
+                    throw new Error(payload.message || payload.error || "Falha ao salvar estado remoto");
+                }
                 appStateCache = mergeAppState(payload);
                 return getAppState();
             } catch (error) {
-                showToast("error", "Falha ao salvar", "Nao foi possivel sincronizar o painel com o servidor.");
+                const message = String(error && error.message ? error.message : "");
+                const toastMessage = message.includes("BLOB_READ_WRITE_TOKEN")
+                    ? "Conecte um Vercel Blob ao projeto para ativar a persistencia global do painel."
+                    : message.includes("HTML em vez de JSON")
+                        ? "A rota /api/state nao esta publicada corretamente na Vercel. Verifique o deploy da Function."
+                        : "Nao foi possivel sincronizar o painel com o servidor.";
+
+                showToast(
+                    "error",
+                    "Falha ao salvar",
+                    toastMessage
+                );
                 throw error;
             }
         }
