@@ -1,6 +1,6 @@
 const fs = require("fs/promises");
 const path = require("path");
-const { put, issueSignedToken, presignUrl } = require("@vercel/blob");
+const { put, head } = require("@vercel/blob");
 
 const DEFAULT_ADMIN = {
   username: "macaco",
@@ -92,21 +92,14 @@ async function writeLocalState(state) {
 
 async function readBlobState() {
   try {
-    const token = await issueSignedToken({
-      pathname: STATE_BLOB_PATH,
-      operations: ["get"],
-      validUntil: Date.now() + 5 * 60 * 1000
+    const blobMetadata = await head(STATE_BLOB_PATH, {
+      token: process.env.BLOB_READ_WRITE_TOKEN
     });
 
-    const { presignedUrl } = await presignUrl(token, {
-      operation: "get",
-      pathname: STATE_BLOB_PATH,
-      access: BLOB_ACCESS,
-      useCache: false,
-      validUntil: Date.now() + 60 * 1000
+    const response = await fetch(blobMetadata.downloadUrl, {
+      cache: "no-store"
     });
 
-    const response = await fetch(presignedUrl, { cache: "no-store" });
     if (response.status === 404) {
       return normalizeState(DEFAULT_STATE);
     }
@@ -130,7 +123,8 @@ async function writeBlobState(state) {
     access: BLOB_ACCESS,
     addRandomSuffix: false,
     allowOverwrite: true,
-    contentType: "application/json; charset=utf-8"
+    contentType: "application/json; charset=utf-8",
+    token: process.env.BLOB_READ_WRITE_TOKEN
   });
 
   return normalized;
