@@ -110,7 +110,12 @@ async function readBlobState() {
 
     return normalizeState(await response.json());
   } catch (error) {
-    if (String(error && error.message || "").includes("404")) {
+    const message = String(error && error.message || "");
+    if (
+      message.includes("404") ||
+      message.includes("The requested blob does not exist") ||
+      message.includes("BlobNotFoundError")
+    ) {
       return normalizeState(DEFAULT_STATE);
     }
     throw error;
