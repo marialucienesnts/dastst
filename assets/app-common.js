@@ -1,7 +1,7 @@
 (function() {
-  const API_STATE_ENDPOINT = "/api/state";
   const USER_SESSION_KEY = "pgmeiAuthenticatedSession";
   const VISITOR_SESSION_KEY = "pgmeiVisitorSession";
+  const LOCAL_STATE_KEY = "pgmeiSharedAppState";
   const DEFAULT_STATE = {
     admin: {
       username: "macaco",
@@ -29,6 +29,7 @@
   };
 
   let stateCache = null;
+  let supabaseClient = null;
 
   function deepMerge(base, patch) {
     const result = Array.isArray(base) ? base.slice() : { ...base };
@@ -57,73 +58,224 @@
 
   function normalizeState(state) {
     const merged = deepMerge(cloneDefaultState(), state || {});
+
     if (!["primary", "secondary"].includes(merged.analytics.activePage)) {
       merged.analytics.activePage = "primary";
     }
-    if (!Array.isArray(merged.analytics.accessLog)) {
-      merged.analytics.accessLog = [];
-    }
-    if (!Array.isArray(merged.analytics.payments)) {
-      merged.analytics.payments = [];
-    }
+
+    merged.analytics.accessLog = Array.isArray(merged.analytics.accessLog)
+      ? merged.analytics.accessLog.slice(0, 20)
+      : [];
+    merged.analytics.payments = Array.isArray(merged.analytics.payments)
+      ? merged.analytics.payments.slice(0, 20)
+      : [];
+
     return merged;
   }
 
-  function buildApiUrl(action, params) {
-    const url = new URL(API_STATE_ENDPOINT, window.location.origin);
-    url.searchParams.set("action", action);
-    url.searchParams.set("_ts", String(Date.now()));
-    Object.entries(params || {}).forEach(function(entry) {
-      if (entry[1] !== undefined && entry[1] !== null) {
-        url.searchParams.set(entry[0], String(entry[1]));
-      }
-    });
-    return url.toString();
+  function getSupabaseConfig() {
+    const config = window.PGMEI_SUPABASE || {};
+    return {
+      url: String(config.url || "").trim(),
+      anonKey: String(config.anonKey || "").trim(),
+      table: String(config.table || "site_state").trim(),
+      rowId: String(config.rowId || "global").trim()
+    };
   }
 
-  async function fetchState() {
-    const response = await fetch(buildApiUrl("get"), { cache: "no-store" });
-    const text = await response.text();
-    let payload = {};
+  function isSupabaseConfigured() {
+    const config = getSupabaseConfig();
+    return Boolean(config.url && config.anonKey && window.supabase);
+  }
 
+  function getSupabaseClient() {
+    if (!isSupabaseConfigured()) {
+      return null;
+    }
+
+    if (!supabaseClient) {
+      const config = getSupabaseConfig();
+      supabaseClient = window.supabase.createClient(config.url, config.anonKey, {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false
+        }
+      });
+    }
+
+    return supabaseClient;
+  }
+
+  function getStorageProviderName() {
+    return isSupabaseConfigured() ? "supabase" : "local";
+  }
+
+  function readLocalState() {
     try {
-      payload = JSON.parse(text);
+      const raw = localStorage.getItem(LOCAL_STATE_KEY);
+      return raw ? normalizeState(JSON.parse(raw)) : normalizeState(DEFAULT_STATE);
     } catch (error) {
-      throw new Error("API retornou conteudo invalido");
+      return normalizeState(DEFAULT_STATE);
+    }
+  }
+
+  function writeLocalState(state) {
+    const normalized = normalizeState(state);
+    localStorage.setItem(LOCAL_STATE_KEY, JSON.stringify(normalized));
+    stateCache = normalized;
+    return normalized;
+  }
+
+  async function readSupabaseState() {
+    const client = getSupabaseClient();
+    const config = getSupabaseConfig();
+    const { data, error } = await client
+      .from(config.table)
+      .select("payload")
+      .eq("id", config.rowId)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(error.message || "Falha ao ler estado no Supabase");
     }
 
-    if (!response.ok) {
-      throw new Error(payload.message || payload.error || "Falha ao carregar estado");
+    if (!data || !data.payload) {
+      const defaultState = normalizeState(DEFAULT_STATE);
+      return writeSupabaseState(defaultState);
     }
 
-    stateCache = normalizeState(payload);
+    const normalized = normalizeState(data.payload);
+    stateCache = normalized;
+    return normalized;
+  }
+
+  async function writeSupabaseState(state) {
+    const client = getSupabaseClient();
+    const config = getSupabaseConfig();
+    const normalized = normalizeState(state);
+    const { data, error } = await client
+      .from(config.table)
+      .upsert(
+        {
+          id: config.rowId,
+          payload: normalized,
+          updated_at: new Date().toISOString()
+        },
+        { onConflict: "id" }
+      )
+      .select("payload")
+      .single();
+
+    if (error) {
+      throw new Error(error.message || "Falha ao salvar estado no Supabase");
+    }
+
+    stateCache = normalizeState(data.payload);
     return stateCache;
   }
 
-  async function sendAction(action, params) {
-    const response = await fetch(buildApiUrl(action, params), { cache: "no-store" });
-    const text = await response.text();
-    let payload = {};
-
-    try {
-      payload = JSON.parse(text);
-    } catch (error) {
-      throw new Error("API retornou conteudo invalido");
+  async function fetchState() {
+    if (isSupabaseConfigured()) {
+      return readSupabaseState();
     }
 
-    if (!response.ok) {
-      throw new Error(payload.message || payload.error || "Falha ao salvar estado");
-    }
-
-    stateCache = normalizeState(payload);
+    stateCache = readLocalState();
     return stateCache;
   }
 
   function getCachedState() {
     if (!stateCache) {
-      stateCache = cloneDefaultState();
+      stateCache = normalizeState(DEFAULT_STATE);
     }
     return stateCache;
+  }
+
+  async function persistState(state) {
+    if (isSupabaseConfigured()) {
+      return writeSupabaseState(state);
+    }
+
+    return writeLocalState(state);
+  }
+
+  function applyActionToState(state, action, params) {
+    const nextState = normalizeState(state);
+    const analytics = nextState.analytics;
+    const now = new Date().toISOString();
+    const safeParams = params || {};
+
+    if (action === "get") {
+      return nextState;
+    }
+
+    if (action === "set_active_page") {
+      analytics.activePage = safeParams.page === "secondary" ? "secondary" : "primary";
+      return nextState;
+    }
+
+    if (action === "update_settings") {
+      if (String(safeParams.secondaryTitle || "").trim()) {
+        analytics.secondaryTitle = String(safeParams.secondaryTitle).trim();
+      }
+      if (String(safeParams.secondaryMessage || "").trim()) {
+        analytics.secondaryMessage = String(safeParams.secondaryMessage).trim();
+      }
+      return nextState;
+    }
+
+    if (action === "track_visit") {
+      analytics.visits += 1;
+      analytics.lastVisitAt = now;
+
+      if (String(safeParams.unique || "0") === "1") {
+        analytics.uniqueVisitors += 1;
+      }
+
+      analytics.accessLog.unshift({
+        time: now,
+        page: safeParams.page === "secondary" ? "secondary" : "primary",
+        location: String(safeParams.location || "/").trim() || "/"
+      });
+      analytics.accessLog = analytics.accessLog.slice(0, 20);
+      return nextState;
+    }
+
+    if (action === "increment_metric") {
+      const metric = String(safeParams.metric || "");
+      const amount = Math.max(1, parseInt(String(safeParams.amount || "1"), 10) || 1);
+      const allowedMetrics = new Set(["totalClicks", "cnpjLogins", "pixGenerated", "paymentsConfirmed"]);
+
+      if (!allowedMetrics.has(metric)) {
+        throw new Error("INVALID_METRIC");
+      }
+
+      analytics[metric] = (analytics[metric] || 0) + amount;
+      return nextState;
+    }
+
+    if (action === "log_payment") {
+      analytics.pixGenerated += 1;
+      analytics.lastPaymentAt = now;
+      analytics.payments.unshift({
+        label: String(safeParams.label || "Pagamento Pix").trim(),
+        amount: String(safeParams.amount || "R$ 0,00").trim(),
+        status: "Pendente",
+        time: now,
+        cnpj: String(safeParams.cnpj || "").trim(),
+        companyName: String(safeParams.companyName || "Razao social nao informada").trim(),
+        code: String(safeParams.code || "").trim()
+      });
+      analytics.payments = analytics.payments.slice(0, 20);
+      return nextState;
+    }
+
+    throw new Error("INVALID_ACTION");
+  }
+
+  async function sendAction(action, params) {
+    const currentState = await fetchState();
+    const nextState = applyActionToState(currentState, action, params);
+    return persistState(nextState);
   }
 
   function getSession() {
@@ -148,6 +300,7 @@
     if (isUnique) {
       sessionStorage.setItem(VISITOR_SESSION_KEY, String(Date.now()));
     }
+
     return sendAction("track_visit", {
       page: pageName,
       location: locationPath,
@@ -202,10 +355,7 @@
   }
 
   function formatDateTime(value) {
-    if (!value) {
-      return "";
-    }
-    return new Date(value).toLocaleString("pt-BR");
+    return value ? new Date(value).toLocaleString("pt-BR") : "";
   }
 
   function redirect(path) {
@@ -268,10 +418,8 @@
   }
 
   window.PGMEI = {
-    API_STATE_ENDPOINT: API_STATE_ENDPOINT,
     USER_SESSION_KEY: USER_SESSION_KEY,
     DEFAULT_STATE: DEFAULT_STATE,
-    buildApiUrl: buildApiUrl,
     fetchState: fetchState,
     sendAction: sendAction,
     getCachedState: getCachedState,
@@ -285,6 +433,9 @@
     formatCurrency: formatCurrency,
     formatDateTime: formatDateTime,
     redirect: redirect,
-    buildPixPayload: buildPixPayload
+    buildPixPayload: buildPixPayload,
+    getStorageProviderName: getStorageProviderName,
+    isSupabaseConfigured: isSupabaseConfigured,
+    getSupabaseConfig: getSupabaseConfig
   };
 })();

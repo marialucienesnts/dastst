@@ -3,10 +3,6 @@
     {
       "source": "/painel",
       "destination": "/painel/index.html"
-    },
-    {
-      "source": "/api/state.php",
-      "destination": "/api/state"
     }
   ]
 }

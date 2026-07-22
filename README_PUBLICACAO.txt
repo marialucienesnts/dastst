@@ -1,12 +1,15 @@
-ALBUQUERQUE CONSULTORIA MEI DAS - PUBLICACAO FINAL VERCEL
+ALBUQUERQUE CONSULTORIA MEI DAS - PUBLICACAO COM SUPABASE
 
-Arquivos principais do projeto:
+Arquivos principais:
 - index.html
+- login/index.html
+- oficial/index.html
+- manutencao/index.html
 - painel/index.html
-- api/state.js
-- app-state.json
-- vercel.json
-- package.json
+- assets/app-common.js
+- assets/painel.js
+- assets/supabase-config.js
+- supabase/schema.sql
 
 Uso local:
 1. Rode `npm install`
@@ -15,35 +18,36 @@ Uso local:
 - Site principal: http://127.0.0.1:8080/
 - Painel: http://127.0.0.1:8080/painel/
 
-Publicacao na Vercel:
-1. Envie este projeto para o GitHub.
-2. Importe o repositório na Vercel.
-3. No projeto da Vercel, abra Storage.
-4. Crie um Blob Store PUBLICO para o estado do painel.
-5. Conecte o Blob Store ao projeto.
-6. Se possivel, use um prefixo proprio para esse store de estado, por exemplo `STATE_BLOB`.
-7. Confirme que a variavel `STATE_BLOB_READ_WRITE_TOKEN` ou `BLOB_READ_WRITE_TOKEN` foi criada no ambiente Production.
-8. Se quiser, crie tambem:
-- `STATE_BLOB_PATH=pgmei/app-state.json`
-- `STATE_BLOB_ACCESS=public`
-9. Faça um novo deploy.
+Observacao local:
+- Sem configurar o Supabase, o projeto entra em modo local.
+- Nesse modo, painel e site compartilham estado apenas no mesmo navegador.
+- Depois de preencher `assets/supabase-config.js`, o comportamento passa a ser global para todos.
+
+Configuracao do Supabase:
+1. Crie um projeto no Supabase.
+2. Abra o SQL Editor.
+3. Rode o script de `supabase/schema.sql`.
+4. Copie a `Project URL`.
+5. Copie a `anon public key`.
+6. Edite `assets/supabase-config.js` e preencha:
+- `url`
+- `anonKey`
 
 Rotas finais esperadas:
 - Site principal: https://www.albuquerqueconsultoriameidas.com/
+- Login: https://www.albuquerqueconsultoriameidas.com/login/
+- Area oficial: https://www.albuquerqueconsultoriameidas.com/oficial/
+- Manutencao: https://www.albuquerqueconsultoriameidas.com/manutencao/
 - Painel: https://www.albuquerqueconsultoriameidas.com/painel
-- API: https://www.albuquerqueconsultoriameidas.com/api/state?action=get
 
 Comportamento do painel:
 - Login fixo: `macaco`
 - Senha fixa: `macaquinhoronald`
 - Sessao continua logada apos `F5`
 - Botao de manutencao altera o estado global do site
-- Acessos, cliques, logins e geracao de Pix ficam persistidos no Blob
+- Acessos, cliques, logins e geracao de Pix ficam salvos no Supabase
 
-Observacoes importantes:
-- Na Vercel, nao use `state.php`. O projeto agora usa `api/state.js`.
-- O estado global nao depende mais de arquivo gravavel no servidor.
-- `app-state.json` continua no projeto apenas para desenvolvimento local.
-- O store de estado deve ser PUBLICO para ser compativel com o SDK usado neste projeto.
-- Se a API responder erro de configuracao, revise se o Blob foi realmente conectado ao projeto e se o deploy mais recente recebeu a variavel `STATE_BLOB_READ_WRITE_TOKEN` ou `BLOB_READ_WRITE_TOKEN`.
-- Se voce corrigir a API ou qualquer arquivo do projeto, envie um novo commit para o GitHub antes de usar `Redeploy` na Vercel, porque o redeploy publica o ultimo commit remoto.
+Observacoes:
+- O projeto nao depende mais de `/api/state`.
+- Os arquivos `api/state.js` e `app-state.json` podem continuar no projeto para historico e testes locais, mas a versao atual usa Supabase.
+- Se quiser que todos os aparelhos vejam a manutencao ao mesmo tempo, o `assets/supabase-config.js` precisa estar preenchido com o projeto real.
