@@ -19,13 +19,14 @@ Publicacao na Vercel:
 1. Envie este projeto para o GitHub.
 2. Importe o repositório na Vercel.
 3. No projeto da Vercel, abra Storage.
-4. Crie um Blob Store.
+4. Crie um Blob Store PUBLICO para o estado do painel.
 5. Conecte o Blob Store ao projeto.
-6. Confirme que a variavel `BLOB_READ_WRITE_TOKEN` foi criada no ambiente Production.
-7. Se quiser, crie tambem:
+6. Se possivel, use um prefixo proprio para esse store de estado, por exemplo `STATE_BLOB`.
+7. Confirme que a variavel `STATE_BLOB_READ_WRITE_TOKEN` ou `BLOB_READ_WRITE_TOKEN` foi criada no ambiente Production.
+8. Se quiser, crie tambem:
 - `STATE_BLOB_PATH=pgmei/app-state.json`
-- `STATE_BLOB_ACCESS=private`
-8. Faça um novo deploy.
+- `STATE_BLOB_ACCESS=public`
+9. Faça um novo deploy.
 
 Rotas finais esperadas:
 - Site principal: https://www.albuquerqueconsultoriameidas.com/
@@ -43,5 +44,6 @@ Observacoes importantes:
 - Na Vercel, nao use `state.php`. O projeto agora usa `api/state.js`.
 - O estado global nao depende mais de arquivo gravavel no servidor.
 - `app-state.json` continua no projeto apenas para desenvolvimento local.
-- Se a API responder erro de configuracao, revise se o Blob foi realmente conectado ao projeto e se o deploy mais recente recebeu a variavel `BLOB_READ_WRITE_TOKEN`.
+- O store de estado deve ser PUBLICO para ser compativel com o SDK usado neste projeto.
+- Se a API responder erro de configuracao, revise se o Blob foi realmente conectado ao projeto e se o deploy mais recente recebeu a variavel `STATE_BLOB_READ_WRITE_TOKEN` ou `BLOB_READ_WRITE_TOKEN`.
 - Se voce corrigir a API ou qualquer arquivo do projeto, envie um novo commit para o GitHub antes de usar `Redeploy` na Vercel, porque o redeploy publica o ultimo commit remoto.

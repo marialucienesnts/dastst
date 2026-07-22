@@ -34,7 +34,8 @@ const DEFAULT_STATE = {
 
 const LOCAL_STATE_FILE = path.join(process.cwd(), "app-state.json");
 const STATE_BLOB_PATH = process.env.STATE_BLOB_PATH || "pgmei/app-state.json";
-const BLOB_ACCESS = process.env.STATE_BLOB_ACCESS === "public" ? "public" : "private";
+const STATE_BLOB_TOKEN = process.env.STATE_BLOB_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN || "";
+const BLOB_ACCESS = process.env.STATE_BLOB_ACCESS === "private" ? "private" : "public";
 
 function mergeState(rawState) {
   return {
@@ -67,7 +68,7 @@ function normalizeState(rawState) {
 }
 
 function isBlobConfigured() {
-  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+  return Boolean(STATE_BLOB_TOKEN);
 }
 
 function isVercelRuntime() {
@@ -93,7 +94,7 @@ async function writeLocalState(state) {
 async function readBlobState() {
   try {
     const blobMetadata = await head(STATE_BLOB_PATH, {
-      token: process.env.BLOB_READ_WRITE_TOKEN
+      token: STATE_BLOB_TOKEN
     });
 
     const response = await fetch(blobMetadata.downloadUrl, {
@@ -124,7 +125,7 @@ async function writeBlobState(state) {
     addRandomSuffix: false,
     allowOverwrite: true,
     contentType: "application/json; charset=utf-8",
-    token: process.env.BLOB_READ_WRITE_TOKEN
+    token: STATE_BLOB_TOKEN
   });
 
   return normalized;
@@ -269,7 +270,7 @@ module.exports = async (req, res) => {
     if (message === "BLOB_NOT_CONFIGURED") {
       jsonResponse(res, 500, {
         error: "BLOB_NOT_CONFIGURED",
-        message: "Configure o Vercel Blob e a variavel BLOB_READ_WRITE_TOKEN para persistir o painel na Vercel."
+        message: "Configure um Blob publico para o estado e a variavel STATE_BLOB_READ_WRITE_TOKEN ou BLOB_READ_WRITE_TOKEN."
       });
       return;
     }
