@@ -325,6 +325,11 @@
             border-color: #66afe9;
             box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102,175,233,.6);
         }
+        #cnpj.form-control::placeholder {
+            color: #4c6472;
+            letter-spacing: 2px;
+            opacity: 1;
+        }
         .h-captcha {
             margin: 10px 0;
             display: flex;
