@@ -94,6 +94,20 @@
             margin-right: 7px;
             vertical-align: middle;
         }
+        .simples-logo {
+            display: block;
+            object-fit: contain;
+        }
+        .simples-logo-header {
+            width: 250px;
+            max-width: 72vw;
+            height: auto;
+        }
+        .simples-logo-footer {
+            width: 190px;
+            max-width: 48vw;
+            height: auto;
+        }
         .brand-mark {
             width: 20px;
             height: 20px;
@@ -804,6 +818,12 @@
             }
             .panel {
                 margin-top: 10px;
+            }
+            .simples-logo-header {
+                width: 210px;
+            }
+            .simples-logo-footer {
+                width: 160px;
             }
         }
     

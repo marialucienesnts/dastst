@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 220" role="img" aria-labelledby="title desc">
+  <title id="title">Simples Nacional</title>
+  <desc id="desc">Logo Simples Nacional em verde e amarelo</desc>
+  <defs>
+    <linearGradient id="markGreen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#35a751"/>
+      <stop offset="1" stop-color="#0d682f"/>
+    </linearGradient>
+    <linearGradient id="markYellow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff067"/>
+      <stop offset="0.48" stop-color="#ffd11f"/>
+      <stop offset="1" stop-color="#f1a900"/>
+    </linearGradient>
+    <linearGradient id="textGreen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2f874a"/>
+      <stop offset="1" stop-color="#155c31"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(42 34)">
+    <circle cx="72" cy="72" r="64" fill="url(#markGreen)"/>
+    <path d="M114 12c25 19 36 50 26 80-12 35-45 56-82 50 22-5 42-17 52-36 10-20 5-36-12-49-13-10-31-16-47-14 12-21 35-34 63-31z" fill="url(#markYellow)"/>
+    <path d="M28 126c-22-22-29-55-16-83C28 9 64-5 100 6 74 11 54 23 44 43c-9 18-2 35 17 49 15 11 31 16 48 14-16 23-47 33-81 20z" fill="#ffffff" opacity="0.9"/>
+    <path d="M33 126c-20-21-25-51-12-78 11-22 32-35 61-39-20 7-35 18-43 34-10 20-2 40 20 55 10 7 23 12 37 14-17 16-39 21-63 14z" fill="url(#markGreen)"/>
+  </g>
+  <g fill="url(#textGreen)" font-family="Arial, Helvetica, sans-serif" font-weight="700">
+    <text x="210" y="102" font-size="76" letter-spacing="2">SIMPLES</text>
+    <text x="214" y="156" font-size="36" letter-spacing="22">NACIONAL</text>
+  </g>
+</svg>
