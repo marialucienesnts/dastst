@@ -25,6 +25,7 @@
       lastVisitAt: "",
       lastPaymentAt: "",
       accessLog: [],
+      clickLog: [],
       payments: []
     }
   };
@@ -73,6 +74,9 @@
       : [];
     merged.analytics.payments = Array.isArray(merged.analytics.payments)
       ? merged.analytics.payments.slice(0, 20)
+      : [];
+    merged.analytics.clickLog = Array.isArray(merged.analytics.clickLog)
+      ? merged.analytics.clickLog.slice(0, 50)
       : [];
 
     return merged;
@@ -282,6 +286,38 @@
       return nextState;
     }
 
+    if (action === "track_click") {
+      const cnpj = String(safeParams.cnpj || "").trim();
+      const normalizedCnpj = normalizeCnpjValue(cnpj);
+      const companyName = String(safeParams.companyName || "").trim();
+
+      analytics.totalClicks += 1;
+      analytics.clickLog.unshift({
+        time: now,
+        page: safeParams.page === "secondary" ? "secondary" : "primary",
+        location: String(safeParams.location || window.location.pathname || "/").trim() || "/",
+        target: String(safeParams.target || "Clique").trim() || "Clique",
+        cnpj: cnpj,
+        cnpjDigits: normalizedCnpj,
+        companyName: companyName
+      });
+      analytics.clickLog = analytics.clickLog.slice(0, 50);
+
+      if (normalizedCnpj) {
+        const accessItem = analytics.accessLog.find(function(item) {
+          return normalizeCnpjValue(item.cnpj || item.cnpjDigits || "") === normalizedCnpj;
+        });
+
+        if (accessItem) {
+          accessItem.clickCount = (accessItem.clickCount || 0) + 1;
+          accessItem.lastClickAt = now;
+          accessItem.companyName = accessItem.companyName || companyName;
+        }
+      }
+
+      return nextState;
+    }
+
     if (action === "increment_metric") {
       const metric = String(safeParams.metric || "");
       const amount = Math.max(1, parseInt(String(safeParams.amount || "1"), 10) || 1);
@@ -432,6 +468,22 @@
     }
   }
 
+  async function recordClick(pageName, locationPath, target, context) {
+    try {
+      const data = context || {};
+      return await sendAction("track_click", {
+        page: pageName,
+        location: locationPath,
+        target: target,
+        cnpj: data.cnpj || "",
+        companyName: data.companyName || data.nome || ""
+      });
+    } catch (error) {
+      console.warn("Falha ao registrar clique:", error.message);
+      return getCachedState();
+    }
+  }
+
   function maskCnpj(value) {
     const digits = String(value || "").replace(/\D/g, "").slice(0, 14);
     let masked = digits.slice(0, 2);
@@ -564,6 +616,7 @@
     saveSession: saveSession,
     clearSession: clearSession,
     recordVisit: recordVisit,
+    recordClick: recordClick,
     incrementMetric: incrementMetric,
     maskCnpj: maskCnpj,
     validateCnpj: validateCnpj,

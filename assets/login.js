@@ -127,9 +127,12 @@
     });
 
     document.addEventListener("click", function(event) {
-      const target = event.target.closest("button, a");
+      const target = event.target.closest("button, a, input, select, textarea, label");
       if (target) {
-        window.PGMEI.incrementMetric("totalClicks", 1);
+        const cnpjMask = window.PGMEI.maskCnpj(cnpjInput.value);
+        window.PGMEI.recordClick("primary", "/login/", target.textContent || target.name || target.id || "Clique", {
+          cnpj: cnpjMask
+        });
       }
     });
 

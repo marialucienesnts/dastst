@@ -313,7 +313,10 @@
     }
 
     $(document).on("click", "button, a", function() {
-      window.PGMEI.incrementMetric("totalClicks", 1);
+      window.PGMEI.recordClick("primary", "/oficial/", $(this).text().trim() || this.id || "Clique", {
+        cnpj: session.cnpj || "",
+        companyName: session.nome || ""
+      });
     });
 
     $("#nav-inicio, #nav-emitir").on("click", function() {

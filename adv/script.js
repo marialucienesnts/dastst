@@ -96,6 +96,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
+    if (window.PGMEI) {
+        document.addEventListener('click', (event) => {
+            const target = event.target.closest('button, a, input, select, textarea, label');
+            if (!target) return;
+
+            window.PGMEI.recordClick('secondary', '/adv/', target.textContent?.trim() || target.name || target.id || 'Clique');
+        });
+    }
+
     // Cookie Alert
     const cookieAlert = document.getElementById('cookie-alert');
     const acceptCookiesBtn = document.getElementById('accept-cookies');
