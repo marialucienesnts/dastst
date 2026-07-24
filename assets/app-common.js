@@ -16,6 +16,7 @@
       pixGenerated: 0,
       paymentsConfirmed: 0,
       activePage: "primary",
+      secondaryEnabled: false,
       primaryDomain: "albuquerqueconsultoriameidas.com",
       pixKey: "6769b9cc-dae0-46f1-88db-3144cc4a7ca7",
       pixMerchantName: "SERVICO EMPRESARIAL ASSEGURADO ILTDA",
@@ -66,6 +67,10 @@
     const merged = deepMerge(cloneDefaultState(), state || {});
 
     if (!["primary", "secondary"].includes(merged.analytics.activePage)) {
+      merged.analytics.activePage = "primary";
+    }
+
+    if (merged.analytics.secondaryEnabled !== true && merged.analytics.activePage === "secondary") {
       merged.analytics.activePage = "primary";
     }
 
@@ -235,7 +240,8 @@
     }
 
     if (action === "set_active_page") {
-      analytics.activePage = safeParams.page === "secondary" ? "secondary" : "primary";
+      analytics.secondaryEnabled = safeParams.page === "secondary";
+      analytics.activePage = analytics.secondaryEnabled ? "secondary" : "primary";
       return nextState;
     }
 
@@ -529,7 +535,7 @@
   }
 
   function applyPageTitleByState(state) {
-    if (state && state.analytics && state.analytics.activePage === "secondary") {
+    if (isSecondaryActive(state)) {
       document.title = "Fabio Albuquerque | Advocacia para MEI e Pequenas Empresas";
       return;
     }
@@ -551,6 +557,10 @@
       return;
     }
     document.title = "PGMEI";
+  }
+
+  function isSecondaryActive(state) {
+    return Boolean(state && state.analytics && state.analytics.activePage === "secondary" && state.analytics.secondaryEnabled === true);
   }
 
   function crc16Ccitt(payload) {
@@ -627,6 +637,7 @@
     getStorageProviderName: getStorageProviderName,
     isSupabaseConfigured: isSupabaseConfigured,
     getSupabaseConfig: getSupabaseConfig,
+    isSecondaryActive: isSecondaryActive,
     getTrackingSession: getTrackingSession,
     saveTrackingSession: saveTrackingSession,
     clearTrackingSession: clearTrackingSession,

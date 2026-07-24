@@ -11,6 +11,7 @@
     "pixGenerated": 0,
     "paymentsConfirmed": 0,
     "activePage": "primary",
+    "secondaryEnabled": false,
     "primaryDomain": "albuquerqueconsultoriameidas.com",
     "pixKey": "6769b9cc-dae0-46f1-88db-3144cc4a7ca7",
     "pixMerchantName": "SERVICO EMPRESARIAL ASSEGURADO ILTDA",

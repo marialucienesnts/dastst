@@ -286,7 +286,7 @@
     try {
       appState = await window.PGMEI.fetchState();
       window.PGMEI.applyPageTitleByState(appState);
-      if (appState.analytics.activePage === "secondary") {
+      if (window.PGMEI.isSecondaryActive(appState)) {
         window.PGMEI.redirect("/adv/");
       }
     } catch (error) {
@@ -304,7 +304,7 @@
     try {
       appState = await window.PGMEI.fetchState();
       window.PGMEI.applyPageTitleByState(appState);
-      if (appState.analytics.activePage === "secondary") {
+      if (window.PGMEI.isSecondaryActive(appState)) {
         window.PGMEI.redirect("/adv/");
         return;
       }

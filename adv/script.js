@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (window.PGMEI) {
         try {
             const state = await window.PGMEI.fetchState();
-            if (state.analytics.activePage === 'primary') {
+            if (!window.PGMEI.isSecondaryActive(state)) {
                 if (window.PGMEI.getSession()) {
                     window.PGMEI.redirect('/oficial/');
                     return;

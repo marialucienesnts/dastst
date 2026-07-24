@@ -14,7 +14,7 @@
       window.PGMEI.applyPageTitleByState(state);
       const session = window.PGMEI.getSession();
 
-      if (state.analytics.activePage === "secondary") {
+      if (window.PGMEI.isSecondaryActive(state)) {
         document.title = "Fabio Albuquerque | Advocacia para MEI e Pequenas Empresas";
         window.PGMEI.redirect("/adv/");
         return;

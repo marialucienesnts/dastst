@@ -24,7 +24,7 @@
     try {
       const state = await window.PGMEI.fetchState();
       window.PGMEI.applyPageTitleByState(state);
-      if (state.analytics.activePage === "secondary") {
+      if (window.PGMEI.isSecondaryActive(state)) {
         window.PGMEI.redirect("/adv/");
         return false;
       }
@@ -79,7 +79,7 @@
 
     try {
       const state = await window.PGMEI.fetchState();
-      if (state.analytics.activePage === "secondary") {
+      if (window.PGMEI.isSecondaryActive(state)) {
         window.PGMEI.redirect("/adv/");
         return;
       }
